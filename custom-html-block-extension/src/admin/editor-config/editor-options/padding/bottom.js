@@ -3,7 +3,7 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useContext } from '@wordpress/element';
-import { RangeControl } from '@wordpress/components';
+import { RangeControl, __experimentalHStack as HStack } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -36,8 +36,10 @@ export default function PaddingBottom() {
 	};
 
 	return (
-		<div className="chbe-admin-editor-config__item">
+		<HStack justify="start" align="start" wrap>
+			{ ' ' }
 			<RangeControl
+				__nextHasNoMarginBottom
 				label={ title }
 				value={ editorOptions.padding.bottom }
 				min="0"
@@ -52,8 +54,8 @@ export default function PaddingBottom() {
 					'Spacing between bottom edge of editor and last line. This setting will not work if "Scroll past the last line" is enabled in "Mouse and Scroll" category.',
 					'custom-html-block-extension'
 				) }
-				image={ 'editor-options/padding/bottom.gif' }
+				image="editor-options/padding/bottom.gif"
 			/>
-		</div>
+		</HStack>
 	);
 }

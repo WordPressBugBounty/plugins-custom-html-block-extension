@@ -3,7 +3,7 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useContext } from '@wordpress/element';
-import { RangeControl } from '@wordpress/components';
+import { RangeControl, __experimentalHStack as HStack } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -35,8 +35,9 @@ export default function MinimapScale() {
 	};
 
 	return (
-		<div className="chbe-admin-editor-config__item">
+		<HStack justify="start" align="start" wrap>
 			<RangeControl
+				__nextHasNoMarginBottom
 				label={ title }
 				value={ editorOptions.minimap.scale }
 				min="1"
@@ -47,9 +48,9 @@ export default function MinimapScale() {
 			<ItemHelp
 				onChange={ onChange }
 				title={ title }
-				image={ 'editor-options/minimap/scale.gif' }
+				image="editor-options/minimap/scale.gif"
 				value={ editorOptions.minimap.scale }
 			/>
-		</div>
+		</HStack>
 	);
 }
