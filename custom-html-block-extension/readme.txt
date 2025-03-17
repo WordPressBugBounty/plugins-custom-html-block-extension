@@ -2,9 +2,9 @@
 Contributors: wildworks
 Tags: gutenberg, block, html, highlighting, emmet
 Donate link: https://www.paypal.me/thamanoJP
-Requires at least: 6.5
-Tested up to: 6.7
-Stable tag: 3.7.0
+Requires at least: 6.6
+Tested up to: 6.8
+Stable tag: 3.8.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -35,10 +35,6 @@ And supports the classic editor, the theme/plugin editor, import/export editor s
 License: MIT License
 Source: https://github.com/microsoft/monaco-editor
 
-= react-notifications-component =
-License: MIT License
-Source: https://github.com/teodosii/react-notifications-component
-
 = emmet-monaco-es =
 License: MIT License
 Source: https://github.com/troy351/emmet-monaco-es
@@ -68,6 +64,14 @@ License: OFL License
 Source: https://www.marksimonson.com/fonts/view/anonymous-pro
 
 == Changelog ==
+
+= 3.8.0 =
+* Tested to WordPress 6.8
+* Drop support for WordPress 6.5
+* Enhancement: Use WordPress snackbar on the settings page
+* Fix: No alert when leaving the theme/plugin editor
+* Fix: Ajax on save doesn't work in the theme/plugin editor
+* Fix: "Save Options" button size on the settings page
 
 = 3.7.0 =
 * Tested to WordPress 6.7

@@ -1,21 +1,18 @@
-// React notification component
-@import "../../node_modules/react-notifications-component/dist/scss/notification";
-
 // WordPress base styles
-@import "node_modules/@wordpress/base-styles/mixins";
-@import "node_modules/@wordpress/base-styles/variables";
+@use "../wp-base-styles" as wpBaseStyles;
 
 // Components
-@import "./components/header/style";
-@import "./components/shortcut/style";
-@import "./components/welcome-guide/style";
+@use "./components/snackbars/style" as snackbars;
+@use "./components/header/style" as header;
+@use "./components/shortcut/style" as shortcut;
+@use "./components/welcome-guide/style" as welcomeGuide;
 
 // Monaco Editor common styles
-@import "../components/monaco-editor/style";
+@use "../components/monaco-editor/style" as monacoEditor;
 
-@import "./editor-config/style";
+@use "./editor-config/style" as editorConfig;
 
-@include wordpress-admin-schemes();
+@include wpBaseStyles.wordpress-admin-schemes();
 
 // WordPress admin
 .auto-fold #wpcontent {
@@ -28,23 +25,8 @@
 	.chbe-admin-container {
 		position: relative;
 		max-width: 1200px;
-		padding: 0 $grid-unit-20 + $grid-unit-05;
+		padding: 0 wpBaseStyles.$grid-unit-20 + wpBaseStyles.$grid-unit-05;
 		margin: 0 auto;
-	}
-
-	// React notification component styles
-	.rnc__base {
-		bottom: 0;
-		right: 0;
-	}
-
-	.rnc__notification-item {
-		margin-bottom: $grid-unit-20;
-	}
-
-	.rnc__notification-container--bottom-right {
-		bottom: 0;
-		right: $grid-unit-20;
 	}
 
 	// Gutenberg component styles
@@ -53,7 +35,7 @@
 	}
 
 	.components-panel__body {
-		background: $white;
+		background: wpBaseStyles.$white;
 	}
 }
 
@@ -79,8 +61,8 @@
 
 	.chbe-admin__tab-panel .components-tab-panel__tabs {
 		justify-content: center;
-		margin-bottom: $grid-unit-50;
-		background: $white;
+		margin-bottom: wpBaseStyles.$grid-unit-50;
+		background: wpBaseStyles.$white;
 		box-shadow: 0 1px 0 rgba(213, 213, 213, 0.5);
 	}
 }
