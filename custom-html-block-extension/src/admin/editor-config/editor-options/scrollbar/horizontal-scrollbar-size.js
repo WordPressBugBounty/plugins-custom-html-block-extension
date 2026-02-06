@@ -52,13 +52,13 @@ export default function ScrollbarHorizontalScrollbarSize() {
 
 	return (
 		<HStack justify="start" align="start" wrap>
-			{ ' ' }
 			<RangeControl
+				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 				label={ title }
 				value={ value }
-				min="5"
-				max="30"
+				min={ 5 }
+				max={ 30 }
 				allowReset
 				onChange={ onChange }
 			/>

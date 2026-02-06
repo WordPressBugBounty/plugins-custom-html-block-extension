@@ -37,13 +37,13 @@ export default function PaddingTop() {
 
 	return (
 		<HStack justify="start" align="start" wrap>
-			{ ' ' }
 			<RangeControl
+				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 				label={ title }
 				value={ editorOptions.padding.top }
-				min="0"
-				max="50"
+				min={ 0 }
+				max={ 50 }
 				allowReset
 				onChange={ onChange }
 			/>

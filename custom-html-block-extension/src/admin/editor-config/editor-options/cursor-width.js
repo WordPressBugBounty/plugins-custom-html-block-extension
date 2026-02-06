@@ -32,11 +32,12 @@ export default function CursorWidth() {
 
 	return (
 		<RangeControl
+			__next40pxDefaultSize
 			__nextHasNoMarginBottom
 			label={ title }
 			value={ editorOptions.cursorWidth }
-			min="2"
-			max="10"
+			min={ 2 }
+			max={ 10 }
 			allowReset
 			onChange={ onChange }
 		/>

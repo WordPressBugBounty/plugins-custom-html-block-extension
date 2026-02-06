@@ -34,11 +34,12 @@ export default function Rulers() {
 	return (
 		<HStack justify="start" align="start" wrap>
 			<RangeControl
+				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 				label={ title }
 				value={ editorOptions.rulers.length ? editorOptions.rulers[ 0 ] : 0 }
-				min="0"
-				max="80"
+				min={ 0 }
+				max={ 80 }
 				allowReset
 				onChange={ onChange }
 			/>

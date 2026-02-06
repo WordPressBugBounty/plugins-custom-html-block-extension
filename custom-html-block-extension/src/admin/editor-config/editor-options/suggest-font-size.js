@@ -34,11 +34,12 @@ export default function SuggestFontSize() {
 	return (
 		<HStack justify="start" align="start" wrap>
 			<RangeControl
+				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 				label={ title }
 				value={ editorOptions.suggestFontSize }
-				min="10"
-				max="30"
+				min={ 10 }
+				max={ 30 }
 				allowReset
 				onChange={ onChange }
 			/>

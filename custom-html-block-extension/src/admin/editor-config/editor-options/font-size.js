@@ -32,11 +32,12 @@ export default function FontSize() {
 
 	return (
 		<RangeControl
+			__next40pxDefaultSize
 			__nextHasNoMarginBottom
 			label={ title }
 			value={ editorOptions.fontSize }
-			min="10"
-			max="30"
+			min={ 10 }
+			max={ 30 }
 			allowReset
 			onChange={ onChange }
 		/>

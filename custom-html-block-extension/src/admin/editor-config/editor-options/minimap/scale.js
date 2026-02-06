@@ -37,11 +37,12 @@ export default function MinimapScale() {
 	return (
 		<HStack justify="start" align="start" wrap>
 			<RangeControl
+				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 				label={ title }
 				value={ editorOptions.minimap.scale }
-				min="1"
-				max="3"
+				min={ 1 }
+				max={ 3 }
 				allowReset
 				onChange={ onChange }
 			/>
