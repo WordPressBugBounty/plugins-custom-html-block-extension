@@ -2,9 +2,9 @@
 Contributors: wildworks
 Tags: gutenberg, block, html, highlighting, emmet
 Donate link: https://www.paypal.me/thamanoJP
-Requires at least: 6.8
-Tested up to: 6.9
-Stable tag: 3.9.0
+Requires at least: 6.9
+Tested up to: 7.0
+Stable tag: 4.0.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -16,7 +16,7 @@ Custom HTML Block Extension extends Custom HTML block to evolve into the advance
 There are 50 different color themes to choose from, and you can select the one that best suits your taste.
 This plugin features Emmet that expand shortcut input into complete code. This reduces the number of times you have to type and saves keystrokes.
 You can change all kinds of settings to create your ideal editor in advanced mode.
-And supports the classic editor, the theme/plugin editor, import/export editor settings, and change indentation.
+And supports the classic editor, the theme/plugin editor, and import/export editor settings.
 
 == Installation ==
 1. Upload the `custom-html-block-extension` folder to the `/wp-content/plugins/` directory.
@@ -64,6 +64,13 @@ License: OFL License
 Source: https://www.marksimonson.com/fonts/view/anonymous-pro
 
 == Changelog ==
+
+= 4.0.0 =
+* Tested to WordPress 7.0
+* Drop support for WordPress 6.8
+* Remove change indentation UI
+* Fix: Editor crashes when switching to the Code Editor in Firefox
+* Fix: Cut line shortcut doesn't work
 
 = 3.9.0 =
 * Tested to WordPress 6.9
