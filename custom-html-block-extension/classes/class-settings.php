@@ -9,14 +9,6 @@ namespace Custom_Html_Block_Extension;
 
 class Settings {
 
-	// Names of the option to update.
-	const OPTION_NAME = array(
-		'editor_settings'       => 'custom_html_block_extension_editor_settings',
-		'editor_options'        => 'custom_html_block_extension_editor_options',
-		'options'               => 'custom_html_block_extension_options',
-		'dismiss_welcome_guide' => 'custom_html_block_extension_dismiss_welcome_guilde',
-	);
-
 	// Default editor settings.
 	const DEFAULT_EDITOR_SETTINGS = array(
 		'theme'        => array(
@@ -509,12 +501,6 @@ class Settings {
 	EOM;
 
 	/**
-	 * Constructor
-	 */
-	public function __construct() {
-	}
-
-	/**
 	 * Get editor config settings.
 	 */
 	public static function get_editor_settings() {
@@ -524,10 +510,10 @@ class Settings {
 		foreach ( self::DEFAULT_EDITOR_SETTINGS as $key => $value ) {
 			$default_editor_settings[ $key ] = $value['default'];
 		}
-		$current_editor_settings = (array) get_option( self::OPTION_NAME['editor_settings'] );
-		$editor_settings         = array_merge( $default_editor_settings, $current_editor_settings );
 
-		return $editor_settings;
+		$current_editor_settings = (array) get_option( Option::OPTION_NAMES['editor_settings'] );
+
+		return array_merge( $default_editor_settings, $current_editor_settings );
 	}
 
 	/**
@@ -537,7 +523,7 @@ class Settings {
 		// Override default editor options with option values.
 		$default_editor_options = array();
 
-		foreach ( Settings::DEFAULT_EDITOR_OPTIONS as $key => $value ) {
+		foreach ( self::DEFAULT_EDITOR_OPTIONS as $key => $value ) {
 			if ( $value['type'] === 'object' ) {
 				$default_editor_options[ $key ] = array();
 
@@ -549,10 +535,9 @@ class Settings {
 			}
 		}
 
-		$current_editor_options = (array) get_option( Settings::OPTION_NAME['editor_options'] );
-		$editor_options         = array_merge( $default_editor_options, $current_editor_options );
+		$current_editor_options = (array) get_option( Option::OPTION_NAMES['editor_options'] );
 
-		return $editor_options;
+		return array_merge( $default_editor_options, $current_editor_options );
 	}
 
 	/**
@@ -565,19 +550,18 @@ class Settings {
 		foreach ( self::DEFAULT_OPTIONS as $key => $value ) {
 			$default_options[ $key ] = $value['default'];
 		}
-		$current_options = (array) get_option( self::OPTION_NAME['options'] );
-		$options         = array_merge( $default_options, $current_options );
 
-		return $options;
+		$current_options = (array) get_option( Option::OPTION_NAMES['options'] );
+
+		return array_merge( $default_options, $current_options );
 	}
 
 	/**
 	 * Get editor font family variations.
 	 */
 	public static function get_font_families() {
-		$default_font_families    = self::DEFAULT_FONT_FAMILIES;
 		$additional_font_families = apply_filters( 'chbe_additional_font_families', array() );
-		return array_merge( $default_font_families, $additional_font_families );
+		return array_merge( self::DEFAULT_FONT_FAMILIES, $additional_font_families );
 	}
 
 	/**
@@ -586,7 +570,7 @@ class Settings {
 	public static function get_user_roles() {
 		global $wp_roles;
 		if ( empty( $wp_roles ) ) {
-			$wp_roles = new WP_Roles();
+			$wp_roles = new \WP_Roles();
 		}
 
 		$roles            = $wp_roles->get_names();

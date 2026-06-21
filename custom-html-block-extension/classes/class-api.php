@@ -21,90 +21,30 @@ class Api {
 	 * Register REST API route
 	 */
 	public function register_routes() {
-
-		register_rest_route(
-			CHBE_NAMESPACE . '/v1',
-			'/get_editor_config',
-			array(
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'get_editor_config' ),
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-				),
-			)
+		$routes = array(
+			'get_editor_config',
+			'update_editor_config',
+			'delete_editor_config',
+			'update_options',
+			'dismiss_welcome_guide',
+			'import_editor_config',
 		);
 
-		register_rest_route(
-			CHBE_NAMESPACE . '/v1',
-			'/update_editor_config',
-			array(
+		foreach ( $routes as $route ) {
+			register_rest_route(
+				CHBE_NAMESPACE . '/v1',
+				'/' . $route,
 				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'update_editor_config' ),
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-				),
-			)
-		);
-
-		register_rest_route(
-			CHBE_NAMESPACE . '/v1',
-			'/delete_editor_config',
-			array(
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'delete_editor_config' ),
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-				),
-			)
-		);
-
-		register_rest_route(
-			CHBE_NAMESPACE . '/v1',
-			'/update_options',
-			array(
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'update_options' ),
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-				),
-			)
-		);
-
-		register_rest_route(
-			CHBE_NAMESPACE . '/v1',
-			'/dismiss_welcome_guide',
-			array(
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'dismiss_welcome_guide' ),
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-				),
-			)
-		);
-
-		register_rest_route(
-			CHBE_NAMESPACE . '/v1',
-			'/import_editor_config',
-			array(
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'import_editor_config' ),
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-				),
-			)
-		);
+					array(
+						'methods'             => 'POST',
+						'callback'            => array( $this, $route ),
+						'permission_callback' => static function () {
+							return current_user_can( 'manage_options' );
+						},
+					),
+				)
+			);
+		}
 	}
 
 	/**
@@ -125,8 +65,8 @@ class Api {
 	public function update_editor_config( $request ) {
 		$json_params = $request->get_json_params();
 
-		update_option( Settings::OPTION_NAME['editor_settings'], $json_params['editorSettings'] );
-		update_option( Settings::OPTION_NAME['editor_options'], $json_params['editorOptions'] );
+		update_option( Option::OPTION_NAMES['editor_settings'], $json_params['editorSettings'] );
+		update_option( Option::OPTION_NAMES['editor_options'], $json_params['editorOptions'] );
 
 		return rest_ensure_response(
 			array(
@@ -141,8 +81,8 @@ class Api {
 	 */
 	public function delete_editor_config() {
 
-		delete_option( Settings::OPTION_NAME['editor_settings'] );
-		delete_option( Settings::OPTION_NAME['editor_options'] );
+		delete_option( Option::OPTION_NAMES['editor_settings'] );
+		delete_option( Option::OPTION_NAMES['editor_options'] );
 
 		// Return default editor config.
 		return rest_ensure_response(
@@ -159,7 +99,7 @@ class Api {
 	public function update_options( $request ) {
 		$json_params = $request->get_json_params();
 
-		update_option( Settings::OPTION_NAME['options'], $json_params['options'] );
+		update_option( Option::OPTION_NAMES['options'], $json_params['options'] );
 
 		return rest_ensure_response(
 			array(
@@ -173,7 +113,7 @@ class Api {
 	 * Function to dismiss welcome guide.
 	 */
 	public function dismiss_welcome_guide() {
-		update_option( Settings::OPTION_NAME['dismiss_welcome_guide'], 1 );
+		update_option( Option::OPTION_NAMES['dismiss_welcome_guide'], 1 );
 		return array();
 	}
 
@@ -184,8 +124,8 @@ class Api {
 		$json_params = $request->get_json_params();
 
 		// Update editor config.
-		update_option( Settings::OPTION_NAME['editor_settings'], $json_params['editorSettings'] );
-		update_option( Settings::OPTION_NAME['editor_options'], $json_params['editorOptions'] );
+		update_option( Option::OPTION_NAMES['editor_settings'], $json_params['editorSettings'] );
+		update_option( Option::OPTION_NAMES['editor_options'], $json_params['editorOptions'] );
 
 		// Return new editor config.
 		return rest_ensure_response(

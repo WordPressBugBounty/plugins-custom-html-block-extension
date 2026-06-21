@@ -40,7 +40,7 @@ class Admin {
 	public function admin_enqueue_scripts( $hook_suffix ) {
 		// Enqueue pointer.
 		$dismissed = explode( ',', get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
-		if ( false === array_search( CHBE_NAMESPACE . '-pointer', $dismissed, true ) ) {
+		if ( ! in_array( CHBE_NAMESPACE . '-pointer', $dismissed, true ) ) {
 			$content  = '<h3>' . __( 'Custom HTML Block Extension', 'custom-html-block-extension' ) . '</h3>';
 			$content .= '<p>';
 			$content .= sprintf(
@@ -115,7 +115,7 @@ class Admin {
 				'options'             => Settings::get_options(),
 				'userRoles'           => Settings::get_user_roles(),
 				'fontFamily'          => Settings::get_font_families(),
-				'dismissWelcomeGuide' => get_option( Settings::OPTION_NAME['dismiss_welcome_guide'] ),
+				'dismissWelcomeGuide' => get_option( Option::OPTION_NAMES['dismiss_welcome_guide'] ),
 			)
 		);
 
@@ -149,7 +149,7 @@ class Admin {
 			'default'      => $default_editor_settings,
 		);
 
-		register_setting( CHBE_NAMESPACE, Settings::OPTION_NAME['editor_settings'], $args_editor_settings );
+		register_setting( CHBE_NAMESPACE, Option::OPTION_NAMES['editor_settings'], $args_editor_settings );
 
 		// Register editor options.
 		$properties_editor_options = array();
@@ -188,7 +188,7 @@ class Admin {
 			'default'      => $default_editor_options,
 		);
 
-		register_setting( CHBE_NAMESPACE, Settings::OPTION_NAME['editor_options'], $args_editor_options );
+		register_setting( CHBE_NAMESPACE, Option::OPTION_NAMES['editor_options'], $args_editor_options );
 
 		// Register options.
 		$properties_options = array();
@@ -213,7 +213,7 @@ class Admin {
 			'default'      => $default_options,
 		);
 
-		register_setting( CHBE_NAMESPACE, Settings::OPTION_NAME['options'], $args_options );
+		register_setting( CHBE_NAMESPACE, Option::OPTION_NAMES['options'], $args_options );
 	}
 
 	/**

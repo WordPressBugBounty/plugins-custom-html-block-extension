@@ -4,7 +4,7 @@
  * Description: Extend Custom HTML block to evolve into the advanced code editor.
  * Requires at least: 6.9
  * Requires PHP: 8.0
- * Version: 4.0.0
+ * Version: 4.0.1
  * Author: Aki Hamano
  * Author URI: https://github.com/t-hamano
  * License: GPL2 or later
@@ -14,10 +14,6 @@
  * @author Aki Hamano
  * @license GPL-2.0+
  */
-
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
 
 defined( 'ABSPATH' ) || exit;
 
