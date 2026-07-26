@@ -6,8 +6,8 @@
 // Components
 @use "./components/snackbars/style" as snackbars;
 @use "./components/header/style" as header;
-@use "./components/shortcut/style" as shortcut;
-@use "./components/welcome-guide/style" as welcomeGuide;
+@use "./components/keyboard-shortcuts-modal/style" as keyboardShortcutsModal;
+@use "./components/welcome-guide-modal/style" as welcomeGuideModal;
 
 // Monaco Editor common styles
 @use "../components/monaco-editor/style" as monacoEditor;
@@ -17,7 +17,7 @@
 @include mixins.wordpress-admin-schemes();
 
 // WordPress admin
-.auto-fold #wpcontent {
+.settings_page_custom-html-block-extension #wpcontent {
 	padding-left: 0;
 }
 
@@ -29,15 +29,13 @@
 		max-width: 1200px;
 		padding: 0 variables.$grid-unit-20 + variables.$grid-unit-05;
 		margin: 0 auto;
+		width: 100%;
+		box-sizing: border-box;
 	}
 
-	// Gutenberg component styles
-	.components-disabled {
+	// Non-interactive (inert) settings
+	[inert] {
 		opacity: 0.3;
-	}
-
-	.components-panel__body {
-		background: colors.$white;
 	}
 }
 
@@ -61,10 +59,14 @@
 		}
 	}
 
-	.chbe-admin__tab-panel .components-tab-panel__tabs {
+	.chbe-admin__tab-list {
 		justify-content: center;
-		margin-bottom: variables.$grid-unit-50;
 		background: colors.$white;
 		box-shadow: 0 1px 0 rgba(213, 213, 213, 0.5);
+		width: 100%;
+
+		button {
+			flex: initial;
+		}
 	}
 }
