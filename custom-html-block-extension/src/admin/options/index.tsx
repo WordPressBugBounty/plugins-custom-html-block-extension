@@ -2,40 +2,42 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import apiFetch from '@wordpress/api-fetch';
 import { useContext } from '@wordpress/element';
-import { Button } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
+import { Button, Stack } from '@wordpress/ui';
 import { useDispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
 
 /**
  * Internal dependencies
  */
+import { useWaitForSpinner } from '../../lib/helper';
 import { AdminContext } from '../index';
+import { updateSettings } from '../api';
 import PermissionEditor from './components/permission-editor';
 import PermissionUserRole from './components/permission-user-role';
 
 export default function Options() {
 	const { isWaiting, options, setIsWaiting } = useContext( AdminContext );
-	const { createNotice } = useDispatch( noticesStore );
+	const { createSuccessNotice, createErrorNotice } = useDispatch( noticesStore );
+	const waitForSpinner = useWaitForSpinner();
 
-	// Update editor config.
-	const onUpdateOptions = () => {
+	// Update options.
+	const onUpdateOptions = async () => {
 		setIsWaiting( true );
 
-		apiFetch< { success: boolean; message: string } >( {
-			path: '/custom-html-block-extension/v1/update_options',
-			method: 'POST',
-			data: { options },
-		} ).then( ( response ) => {
-			setTimeout( () => {
-				createNotice( response.success ? 'success' : 'error', response.message, {
-					type: 'snackbar',
-				} );
-				setIsWaiting( false );
-			}, 600 );
-		} );
+		try {
+			await updateSettings( { options } );
+			if ( ! ( await waitForSpinner() ) ) {
+				return;
+			}
+			createSuccessNotice( __( 'Options saved.', 'custom-html-block-extension' ), {
+				type: 'snackbar',
+			} );
+		} catch ( error ) {
+			createErrorNotice( ( error as Error ).message, { type: 'snackbar' } );
+		} finally {
+			setIsWaiting( false );
+		}
 	};
 
 	return (
@@ -43,13 +45,7 @@ export default function Options() {
 			<PermissionEditor />
 			<PermissionUserRole />
 			<Stack gap="sm">
-				<Button
-					variant="primary"
-					disabled={ isWaiting }
-					onClick={ onUpdateOptions }
-					__next40pxDefaultSize
-					accessibleWhenDisabled
-				>
+				<Button disabled={ isWaiting } onClick={ onUpdateOptions }>
 					{ __( 'Save Options', 'custom-html-block-extension' ) }
 				</Button>
 			</Stack>

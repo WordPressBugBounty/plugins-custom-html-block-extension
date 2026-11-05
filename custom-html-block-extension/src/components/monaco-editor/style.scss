@@ -1,4 +1,4 @@
-#monaco-editor {
+.chbe-monaco-editor {
 	height: 100%;
 
 	.find-widget {
@@ -21,7 +21,7 @@
 
 			&:focus {
 				box-shadow: none;
-				border: 1px solid;
+				border: var(--wpds-border-width-xs) solid;
 			}
 
 			&.disabled {
@@ -43,7 +43,7 @@
 	}
 
 	.find-part {
-		margin-top: 4px;
+		margin-top: var(--wpds-dimension-gap-xs);
 	}
 
 	.inputarea {
@@ -63,6 +63,9 @@
 		outline: none;
 	}
 
+	// The class name is defined by the Monaco Editor and uses camelCase,
+	// so it can't follow the selector-class-pattern rule.
+	// stylelint-disable-next-line selector-class-pattern
 	.monaco-findInput > .controls {
 		top: 2px;
 	}
@@ -77,4 +80,12 @@
 		margin: 0;
 		background: transparent;
 	}
+}
+
+.chbe-wrap-with-abbreviation {
+	box-sizing: content-box;
+	width: 260px;
+	padding: var(--wpds-dimension-padding-sm);
+	background: var(--wpds-color-background-surface-neutral-strong);
+	border-radius: var(--wpds-border-radius-md);
 }

@@ -11,19 +11,25 @@ class Settings {
 
 	// Default editor settings.
 	const DEFAULT_EDITOR_SETTINGS = array(
-		'theme'        => array(
+		'theme'             => array(
 			'type'    => 'string',
 			'default' => 'vs-dark',
 		),
-		'insertSpaces' => array(
+		'insertSpaces'      => array(
 			'type'    => 'boolean',
 			'default' => true,
 		),
-		'tabSize'      => array(
+		'tabSize'           => array(
 			'type'    => 'number',
-			'default' => 2,
+			'minimum' => 1,
+			'maximum' => 8,
+			'default' => 4,
 		),
-		'emmet'        => array(
+		'detectIndentation' => array(
+			'type'    => 'boolean',
+			'default' => true,
+		),
+		'emmet'             => array(
 			'type'    => 'boolean',
 			'default' => true,
 		),
@@ -33,23 +39,51 @@ class Settings {
 	const DEFAULT_EDITOR_OPTIONS = array(
 		'acceptSuggestionOnEnter'          => array(
 			'type'    => 'string',
+			'enum'    => array( 'on', 'smart', 'off' ),
 			'default' => 'on',
 		),
 		'autoClosingBrackets'              => array(
 			'type'    => 'string',
-			'default' => 'always',
+			'enum'    => array( 'always', 'languageDefined', 'beforeWhitespace', 'never' ),
+			'default' => 'languageDefined',
+		),
+		'autoClosingDelete'                => array(
+			'type'    => 'string',
+			'enum'    => array( 'always', 'auto', 'never' ),
+			'default' => 'auto',
+		),
+		'autoClosingOvertype'              => array(
+			'type'    => 'string',
+			'enum'    => array( 'always', 'auto', 'never' ),
+			'default' => 'auto',
 		),
 		'autoClosingQuotes'                => array(
 			'type'    => 'string',
-			'default' => 'always',
+			'enum'    => array( 'always', 'languageDefined', 'beforeWhitespace', 'never' ),
+			'default' => 'languageDefined',
 		),
 		'autoIndent'                       => array(
 			'type'    => 'string',
+			'enum'    => array( 'none', 'keep', 'brackets', 'advanced' ),
 			'default' => 'advanced',
 		),
 		'autoSurround'                     => array(
 			'type'    => 'string',
+			'enum'    => array( 'languageDefined', 'quotes', 'brackets', 'never' ),
 			'default' => 'languageDefined',
+		),
+		'bracketPairColorization'          => array(
+			'type'  => 'object',
+			'items' => array(
+				'enabled'                            => array(
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				'independentColorPoolPerBracketType' => array(
+					'type'    => 'boolean',
+					'default' => false,
+				),
+			),
 		),
 		'columnSelection'                  => array(
 			'type'    => 'boolean',
@@ -74,31 +108,39 @@ class Settings {
 		),
 		'cursorBlinking'                   => array(
 			'type'    => 'string',
+			'enum'    => array( 'blink', 'smooth', 'phase', 'expand', 'solid' ),
 			'default' => 'blink',
 		),
 		'cursorSmoothCaretAnimation'       => array(
 			'type'    => 'string',
+			'enum'    => array( 'on', 'explicit', 'off' ),
 			'default' => 'off',
 		),
 		'cursorStyle'                      => array(
 			'type'    => 'string',
+			'enum'    => array( 'line', 'line-thin', 'block', 'block-outline', 'underline', 'underline-thin' ),
 			'default' => 'line',
 		),
 		'cursorSurroundingLines'           => array(
 			'type'    => 'number',
+			'minimum' => 0,
+			'maximum' => 20,
 			'default' => 0,
 		),
 		'cursorSurroundingLinesStyle'      => array(
 			'type'    => 'string',
+			'enum'    => array( 'default', 'all' ),
 			'default' => 'default',
 		),
 		'cursorWidth'                      => array(
 			'type'    => 'number',
+			'minimum' => 2,
+			'maximum' => 10,
 			'default' => 2,
 		),
 		'dragAndDrop'                      => array(
 			'type'    => 'boolean',
-			'default' => false,
+			'default' => true,
 		),
 		'emptySelectionClipboard'          => array(
 			'type'    => 'boolean',
@@ -106,6 +148,8 @@ class Settings {
 		),
 		'fastScrollSensitivity'            => array(
 			'type'    => 'number',
+			'minimum' => 1,
+			'maximum' => 10,
 			'default' => 5,
 		),
 		'find'                             => array(
@@ -121,6 +165,7 @@ class Settings {
 				),
 				'seedSearchStringFromSelection' => array(
 					'type'    => 'string',
+					'enum'    => array( 'always', 'selection', 'never' ),
 					'default' => 'always',
 				),
 			),
@@ -135,6 +180,7 @@ class Settings {
 		),
 		'foldingStrategy'                  => array(
 			'type'    => 'string',
+			'enum'    => array( 'auto', 'indentation' ),
 			'default' => 'auto',
 		),
 		'fontFamily'                       => array(
@@ -147,6 +193,8 @@ class Settings {
 		),
 		'fontSize'                         => array(
 			'type'    => 'number',
+			'minimum' => 10,
+			'maximum' => 30,
 			'default' => 14,
 		),
 		'fontWeight'                       => array(
@@ -159,20 +207,59 @@ class Settings {
 		),
 		'glyphMargin'                      => array(
 			'type'    => 'boolean',
-			'default' => false,
+			'default' => true,
+		),
+		'guides'                           => array(
+			'type'  => 'object',
+			'items' => array(
+				'bracketPairs'               => array(
+					'type'    => array( 'boolean', 'string' ),
+					'enum'    => array( true, 'active', false ),
+					'default' => false,
+				),
+				'bracketPairsHorizontal'     => array(
+					'type'    => array( 'boolean', 'string' ),
+					'enum'    => array( true, 'active', false ),
+					'default' => 'active',
+				),
+				'highlightActiveBracketPair' => array(
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				'highlightActiveIndentation' => array(
+					'type'    => array( 'boolean', 'string' ),
+					'enum'    => array( true, 'always', false ),
+					'default' => true,
+				),
+				'indentation'                => array(
+					'type'    => 'boolean',
+					'default' => true,
+				),
+			),
 		),
 		'hideCursorInOverviewRuler'        => array(
 			'type'    => 'boolean',
-			'default' => true,
-		),
-		'highlightActiveIndentGuide'       => array(
-			'type'    => 'boolean',
-			'default' => true,
+			'default' => false,
 		),
 		'hover'                            => array(
 			'type'  => 'object',
 			'items' => array(
+				'above'   => array(
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				'delay'   => array(
+					'type'    => 'number',
+					'minimum' => 0,
+					'maximum' => 3000,
+					'default' => 300,
+				),
 				'enabled' => array(
+					'type'    => 'string',
+					'enum'    => array( 'on', 'onKeyboardModifier', 'off' ),
+					'default' => 'on',
+				),
+				'sticky'  => array(
 					'type'    => 'boolean',
 					'default' => true,
 				),
@@ -180,22 +267,31 @@ class Settings {
 		),
 		'letterSpacing'                    => array(
 			'type'    => 'number',
+			'minimum' => -2,
+			'maximum' => 2,
 			'default' => 0,
 		),
 		'lineDecorationsWidth'             => array(
 			'type'    => 'number',
+			'minimum' => 0,
+			'maximum' => 30,
 			'default' => 0,
 		),
 		'lineHeight'                       => array(
 			'type'    => 'number',
+			'minimum' => 0,
+			'maximum' => 60,
 			'default' => 21,
 		),
 		'lineNumbers'                      => array(
 			'type'    => 'string',
+			'enum'    => array( 'off', 'on', 'relative', 'interval' ),
 			'default' => 'on',
 		),
 		'lineNumbersMinChars'              => array(
 			'type'    => 'number',
+			'minimum' => 1,
+			'maximum' => 10,
 			'default' => 5,
 		),
 		'links'                            => array(
@@ -204,18 +300,26 @@ class Settings {
 		),
 		'matchBrackets'                    => array(
 			'type'    => 'string',
+			'enum'    => array( 'always', 'never', 'near' ),
 			'default' => 'always',
 		),
 		'minimap'                          => array(
 			'type'  => 'object',
 			'items' => array(
+				'autohide'         => array(
+					'type'    => 'string',
+					'enum'    => array( 'none', 'mouseover', 'scroll' ),
+					'default' => 'none',
+				),
 				'enabled'          => array(
 					'type'    => 'boolean',
 					'default' => true,
 				),
 				'maxColumn'        => array(
 					'type'    => 'number',
-					'default' => 60,
+					'minimum' => 10,
+					'maximum' => 200,
+					'default' => 120,
 				),
 				'renderCharacters' => array(
 					'type'    => 'boolean',
@@ -223,32 +327,41 @@ class Settings {
 				),
 				'scale'            => array(
 					'type'    => 'number',
+					'minimum' => 1,
+					'maximum' => 3,
 					'default' => 1,
 				),
 				'showSlider'       => array(
 					'type'    => 'string',
+					'enum'    => array( 'always', 'mouseover' ),
 					'default' => 'mouseover',
 				),
 				'side'             => array(
 					'type'    => 'string',
+					'enum'    => array( 'left', 'right' ),
 					'default' => 'right',
 				),
 				'size'             => array(
 					'type'    => 'string',
+					'enum'    => array( 'proportional', 'fill', 'fit' ),
 					'default' => 'proportional',
 				),
 			),
 		),
 		'multiCursorModifier'              => array(
 			'type'    => 'string',
+			'enum'    => array( 'alt', 'ctrlCmd' ),
 			'default' => 'alt',
 		),
 		'multiCursorPaste'                 => array(
 			'type'    => 'string',
+			'enum'    => array( 'spread', 'full' ),
 			'default' => 'spread',
 		),
 		'mouseWheelScrollSensitivity'      => array(
 			'type'    => 'number',
+			'minimum' => 1,
+			'maximum' => 10,
 			'default' => 1,
 		),
 		'mouseWheelZoom'                   => array(
@@ -257,6 +370,7 @@ class Settings {
 		),
 		'occurrencesHighlight'             => array(
 			'type'    => 'string',
+			'enum'    => array( 'off', 'singleFile' ),
 			'default' => 'singleFile',
 		),
 		'overviewRulerBorder'              => array(
@@ -268,37 +382,57 @@ class Settings {
 			'items' => array(
 				'top'    => array(
 					'type'    => 'number',
+					'minimum' => 0,
+					'maximum' => 50,
 					'default' => 0,
 				),
 				'bottom' => array(
 					'type'    => 'number',
+					'minimum' => 0,
+					'maximum' => 50,
 					'default' => 0,
 				),
 			),
 		),
 		'quickSuggestions'                 => array(
-			'type'    => 'boolean',
-			'default' => true,
+			'type'  => 'object',
+			'items' => array(
+				'other'    => array(
+					'type'    => 'string',
+					'enum'    => array( 'on', 'inline', 'off' ),
+					'default' => 'on',
+				),
+				'comments' => array(
+					'type'    => 'string',
+					'enum'    => array( 'on', 'inline', 'off' ),
+					'default' => 'off',
+				),
+				'strings'  => array(
+					'type'    => 'string',
+					'enum'    => array( 'on', 'inline', 'off' ),
+					'default' => 'off',
+				),
+			),
 		),
 		'quickSuggestionsDelay'            => array(
 			'type'    => 'number',
+			'minimum' => 0,
+			'maximum' => 1000,
 			'default' => 10,
 		),
 		'renderControlCharacters'          => array(
 			'type'    => 'boolean',
-			'default' => false,
+			'default' => true,
 		),
 		'renderFinalNewline'               => array(
 			'type'    => 'string',
+			'enum'    => array( 'on', 'dimmed', 'off' ),
 			'default' => 'on',
-		),
-		'renderIndentGuides'               => array(
-			'type'    => 'boolean',
-			'default' => true,
 		),
 		'renderLineHighlight'              => array(
 			'type'    => 'string',
-			'default' => 'all',
+			'enum'    => array( 'all', 'line', 'gutter', 'none' ),
+			'default' => 'line',
 		),
 		'renderLineHighlightOnlyWhenFocus' => array(
 			'type'    => 'boolean',
@@ -306,15 +440,35 @@ class Settings {
 		),
 		'renderWhitespace'                 => array(
 			'type'    => 'string',
-			'default' => 'none',
+			'enum'    => array( 'all', 'boundary', 'selection', 'trailing', 'none' ),
+			'default' => 'selection',
 		),
 		'rulers'                           => array(
-			'type'    => 'number',
-			'default' => 0,
+			'type'    => 'array',
+			'items'   => array(
+				'type'                 => array( 'number', 'object' ),
+				'minimum'              => 1,
+				'maximum'              => 100,
+				'properties'           => array(
+					'column' => array(
+						'type'     => 'number',
+						'minimum'  => 1,
+						'maximum'  => 100,
+						'required' => true,
+					),
+					'color'  => array(
+						'type'     => 'string',
+						'format'   => 'hex-color',
+						'required' => true,
+					),
+				),
+				'additionalProperties' => false,
+			),
+			'default' => array(),
 		),
 		'roundedSelection'                 => array(
 			'type'    => 'boolean',
-			'default' => false,
+			'default' => true,
 		),
 		'scrollbar'                        => array(
 			'type'  => 'object',
@@ -325,10 +479,13 @@ class Settings {
 				),
 				'arrowSize'               => array(
 					'type'    => 'number',
+					'minimum' => 5,
+					'maximum' => 50,
 					'default' => 11,
 				),
 				'horizontal'              => array(
 					'type'    => 'string',
+					'enum'    => array( 'auto', 'visible', 'hidden' ),
 					'default' => 'auto',
 				),
 				'horizontalHasArrows'     => array(
@@ -337,7 +494,9 @@ class Settings {
 				),
 				'horizontalScrollbarSize' => array(
 					'type'    => 'number',
-					'default' => 10,
+					'minimum' => 5,
+					'maximum' => 30,
+					'default' => 12,
 				),
 				'scrollByPage'            => array(
 					'type'    => 'boolean',
@@ -349,6 +508,7 @@ class Settings {
 				),
 				'vertical'                => array(
 					'type'    => 'string',
+					'enum'    => array( 'auto', 'visible', 'hidden' ),
 					'default' => 'auto',
 				),
 				'verticalHasArrows'       => array(
@@ -357,13 +517,17 @@ class Settings {
 				),
 				'verticalScrollbarSize'   => array(
 					'type'    => 'number',
-					'default' => 10,
+					'minimum' => 5,
+					'maximum' => 30,
+					'default' => 14,
 				),
 			),
 		),
 		'scrollBeyondLastColumn'           => array(
 			'type'    => 'number',
-			'default' => 5,
+			'minimum' => 0,
+			'maximum' => 20,
+			'default' => 4,
 		),
 		'scrollBeyondLastLine'             => array(
 			'type'    => 'boolean',
@@ -379,11 +543,27 @@ class Settings {
 		),
 		'showFoldingControls'              => array(
 			'type'    => 'string',
+			'enum'    => array( 'always', 'mouseover', 'never' ),
 			'default' => 'mouseover',
 		),
 		'smoothScrolling'                  => array(
 			'type'    => 'boolean',
 			'default' => false,
+		),
+		'stickyScroll'                     => array(
+			'type'  => 'object',
+			'items' => array(
+				'enabled'      => array(
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				'maxLineCount' => array(
+					'type'    => 'number',
+					'minimum' => 1,
+					'maximum' => 20,
+					'default' => 5,
+				),
+			),
 		),
 		'stickyTabStops'                   => array(
 			'type'    => 'boolean',
@@ -392,7 +572,16 @@ class Settings {
 		'suggest'                          => array(
 			'type'  => 'object',
 			'items' => array(
-				'showIcons' => array(
+				'insertMode' => array(
+					'type'    => 'string',
+					'enum'    => array( 'insert', 'replace' ),
+					'default' => 'insert',
+				),
+				'preview'    => array(
+					'type'    => 'boolean',
+					'default' => false,
+				),
+				'showIcons'  => array(
 					'type'    => 'boolean',
 					'default' => true,
 				),
@@ -400,11 +589,15 @@ class Settings {
 		),
 		'suggestFontSize'                  => array(
 			'type'    => 'number',
-			'default' => 14,
+			'minimum' => 0,
+			'maximum' => 30,
+			'default' => 0,
 		),
 		'suggestLineHeight'                => array(
 			'type'    => 'number',
-			'default' => 21,
+			'minimum' => 0,
+			'maximum' => 60,
+			'default' => 0,
 		),
 		'suggestOnTriggerCharacters'       => array(
 			'type'    => 'boolean',
@@ -414,21 +607,46 @@ class Settings {
 			'type'    => 'boolean',
 			'default' => false,
 		),
+		'unicodeHighlight'                 => array(
+			'type'  => 'object',
+			'items' => array(
+				'ambiguousCharacters' => array(
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				'invisibleCharacters' => array(
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				'nonBasicASCII'       => array(
+					'type'    => 'boolean',
+					'default' => false,
+				),
+			),
+		),
 		'useTabStops'                      => array(
 			'type'    => 'boolean',
 			'default' => true,
 		),
 		'wrappingIndent'                   => array(
 			'type'    => 'string',
-			'default' => 'none',
+			'enum'    => array( 'none', 'same', 'indent', 'deepIndent' ),
+			'default' => 'same',
 		),
 		'wordWrap'                         => array(
 			'type'    => 'string',
+			'enum'    => array( 'off', 'on', 'wordWrapColumn', 'bounded' ),
 			'default' => 'off',
 		),
 		'wordWrapColumn'                   => array(
 			'type'    => 'number',
+			'minimum' => 20,
+			'maximum' => 200,
 			'default' => 80,
+		),
+		'wordWrapIndicator'                => array(
+			'type'    => 'boolean',
+			'default' => false,
 		),
 	);
 
@@ -448,6 +666,9 @@ class Settings {
 		),
 		'permissionRoles'             => array(
 			'type'    => 'array',
+			'items'   => array(
+				'type' => 'string',
+			),
 			'default' => array( 'administrator', 'editor', 'author', 'contributor' ),
 		),
 	);
@@ -497,80 +718,206 @@ class Settings {
 		),
 	);
 
-	// SVG Icon.
-	const ICON = <<<EOM
-	<svg class="wp-media-buttons-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-		<path d="M3.8,19.6H1.1v-2.4H0v6h1.1v-2.6h2.7v2.6h1.1v-6H3.8V19.6z M5.7,18.3h1.7v4.9h1.1v-4.9h1.7v-1.1H5.7 C5.7,17.2,5.7,18.3,5.7,18.3z M15.2,17.2l-1.5,2.7l-1.4-2.7h-0.9l-0.8,6h1.1l0.5-4l1.5,2.8l1.5-2.8l0.5,4h1.1l-0.8-6H15.2z M19,22.2 v-5h-1.1v6h3.6v-1H19z"/>
-		<Polygon points="16.7,0 7,7.8 10,8.5 5.7,15.2 15.7,7.6 12.6,6.8"/>
-	</svg>
-	EOM;
+	/**
+	 * Get default values from a schema.
+	 *
+	 * Object properties get the defaults of their items.
+	 *
+	 * @param array $schema Schema such as DEFAULT_EDITOR_SETTINGS.
+	 * @return array Default values keyed by property name.
+	 */
+	public static function get_defaults( array $schema ) {
+		$defaults = array();
+
+		foreach ( $schema as $key => $value ) {
+			if ( 'object' === $value['type'] ) {
+				$defaults[ $key ] = self::get_defaults( $value['items'] );
+			} else {
+				$defaults[ $key ] = $value['default'];
+			}
+		}
+
+		return $defaults;
+	}
 
 	/**
 	 * Get editor config settings.
 	 */
 	public static function get_editor_settings() {
 		// Override default editor settings with option values.
-		$default_editor_settings = array();
+		$default_editor_settings = self::get_defaults( self::DEFAULT_EDITOR_SETTINGS );
 
-		foreach ( self::DEFAULT_EDITOR_SETTINGS as $key => $value ) {
-			$default_editor_settings[ $key ] = $value['default'];
-		}
-
-		$current_editor_settings = (array) get_option( Option::OPTION_NAMES['editor_settings'] );
+		// Remove invalid values, such as values saved before an allowed value or
+		// range was narrowed, so that their defaults are used.
+		$current_editor_settings = self::remove_invalid_values(
+			(array) get_option( Option::OPTION_NAMES['editor_settings'], array() ),
+			self::DEFAULT_EDITOR_SETTINGS
+		)['values'];
 
 		return array_merge( $default_editor_settings, $current_editor_settings );
 	}
 
 	/**
 	 * Get editor config options.
+	 *
+	 * Overrides the default editor options with the saved values. Object options
+	 * are merged one level deeper so that properties added later get their defaults.
 	 */
 	public static function get_editor_options() {
-		// Override default editor options with option values.
-		$default_editor_options = array();
+		$default_editor_options = self::get_defaults( self::DEFAULT_EDITOR_OPTIONS );
 
-		foreach ( self::DEFAULT_EDITOR_OPTIONS as $key => $value ) {
-			if ( 'object' === $value['type'] ) {
-				$default_editor_options[ $key ] = array();
-
-				foreach ( $value['items'] as $sub_key => $sub_value ) {
-					$default_editor_options[ $key ][ $sub_key ] = $sub_value['default'];
-				}
-			} else {
-				$default_editor_options[ $key ] = $value['default'];
-			}
-		}
-
-		$current_editor_options = (array) get_option( Option::OPTION_NAMES['editor_options'] );
+		// Migrate before merging so legacy scalar values of object options,
+		// such as a boolean `hover`, still receive their nested defaults. Then
+		// remove invalid values, such as values saved before an allowed value or
+		// range was narrowed, so that their defaults are used.
+		$current_editor_options = self::remove_invalid_values(
+			self::migrate_legacy_editor_options( (array) get_option( Option::OPTION_NAMES['editor_options'], array() ) ),
+			self::DEFAULT_EDITOR_OPTIONS
+		)['values'];
 
 		$editor_options = array_merge( $default_editor_options, $current_editor_options );
 
-		return self::migrate_legacy_editor_options( $editor_options );
+		foreach ( self::DEFAULT_EDITOR_OPTIONS as $key => $value ) {
+			if ( 'object' === $value['type'] && isset( $current_editor_options[ $key ] ) ) {
+				$editor_options[ $key ] = array_merge( $default_editor_options[ $key ], $current_editor_options[ $key ] );
+			}
+		}
+
+		return $editor_options;
+	}
+
+	/**
+	 * Keep only the values that match the schema, such as imported values, and
+	 * collect the others with the reasons. Numbers out of range are clamped first.
+	 *
+	 * @param array  $values   The values to validate.
+	 * @param array  $defaults The option definitions.
+	 * @param string $path     The path of the parent option.
+	 * @return array The valid values (`values`), and the path, error code and
+	 *               message of each of the others (`skipped`).
+	 */
+	public static function remove_invalid_values( $values, $defaults, $path = '' ) {
+		$schema  = self::get_schema( $defaults );
+		$valid   = array();
+		$skipped = array();
+
+		foreach ( $values as $key => $value ) {
+			$key_path = '' === $path ? (string) $key : $path . '.' . $key;
+
+			if ( ! isset( $defaults[ $key ] ) ) {
+				$skipped[] = array(
+					'path'    => $key_path,
+					'code'    => 'unsupported',
+					'message' => __( 'This setting is not supported.', 'custom-html-block-extension' ),
+				);
+				continue;
+			}
+
+			if ( 'object' === $defaults[ $key ]['type'] ) {
+				if ( ! is_array( $value ) ) {
+					$skipped[] = array(
+						'path'    => $key_path,
+						'code'    => 'rest_invalid_type',
+						/* translators: %s: Setting path. */
+						'message' => sprintf( __( '%s is not of type object.', 'custom-html-block-extension' ), $key_path ),
+					);
+					continue;
+				}
+				$result = self::remove_invalid_values( $value, $defaults[ $key ]['items'], $key_path );
+				if ( $result['values'] ) {
+					$valid[ $key ] = $result['values'];
+				}
+				$skipped = array_merge( $skipped, $result['skipped'] );
+				continue;
+			}
+
+			$property = $schema['properties'][ $key ];
+
+			// Clamp numbers out of range, including the ruler columns, instead of
+			// skipping them.
+			$clamp = function ( $number, $range ) {
+				if ( ! is_numeric( $number ) || ( ! isset( $range['minimum'] ) && ! isset( $range['maximum'] ) ) ) {
+					return $number;
+				}
+				$number = (float) $number;
+				return min( max( $number, $range['minimum'] ?? $number ), $range['maximum'] ?? $number );
+			};
+			$value = $clamp( $value, $property );
+			if ( is_array( $value ) && isset( $property['items'] ) ) {
+				foreach ( $value as $index => $item ) {
+					if ( isset( $item['column'], $property['items']['properties']['column'] ) ) {
+						$value[ $index ]['column'] = $clamp( $item['column'], $property['items']['properties']['column'] );
+					} else {
+						$value[ $index ] = $clamp( $item, $property['items'] );
+					}
+				}
+			}
+
+			$error = rest_validate_value_from_schema( $value, $property, $key_path );
+			if ( is_wp_error( $error ) ) {
+				$skipped[] = array(
+					'path'    => $key_path,
+					'code'    => $error->get_error_code(),
+					'message' => $error->get_error_message(),
+				);
+				continue;
+			}
+
+			// Convert values such as a numeric string to the type of the option.
+			$valid[ $key ] = rest_sanitize_value_from_schema( $value, $property, $key_path );
+		}
+
+		return array(
+			'values'  => $valid,
+			'skipped' => $skipped,
+		);
 	}
 
 	/**
 	 * Normalize editor options persisted by older plugin versions so they match
 	 * the current schema.
 	 */
-	private static function migrate_legacy_editor_options( $editor_options ) {
+	public static function migrate_legacy_editor_options( $editor_options ) {
 		// These options were previously persisted as booleans but monaco types
 		// them as string enums, so map legacy booleans onto the new values.
 
+		// Changed to `'on' | 'smart' | 'off'` in monaco-editor 0.19.0.
+		// Type definitions: https://unpkg.com/monaco-editor@0.19.0/esm/vs/editor/editor.api.d.ts
 		if ( isset( $editor_options['acceptSuggestionOnEnter'] ) && is_bool( $editor_options['acceptSuggestionOnEnter'] ) ) {
 			$editor_options['acceptSuggestionOnEnter'] = $editor_options['acceptSuggestionOnEnter'] ? 'on' : 'off';
 		}
 
+		// Changed to `'off' | 'explicit' | 'on'` in monaco-editor 0.35.0.
+		// Upstream change: https://github.com/microsoft/vscode/pull/169113
+		// Type definitions: https://unpkg.com/monaco-editor@0.35.0/esm/vs/editor/editor.api.d.ts
 		if ( isset( $editor_options['cursorSmoothCaretAnimation'] ) && is_bool( $editor_options['cursorSmoothCaretAnimation'] ) ) {
 			$editor_options['cursorSmoothCaretAnimation'] = $editor_options['cursorSmoothCaretAnimation'] ? 'on' : 'off';
 		}
 
+		// Changed to `'off' | 'singleFile' | 'multiFile'` in monaco-editor 0.45.0.
+		// Upstream change: https://github.com/microsoft/vscode/pull/197690
+		// Type definitions: https://unpkg.com/monaco-editor@0.45.0/esm/vs/editor/editor.api.d.ts
 		if ( isset( $editor_options['occurrencesHighlight'] ) && is_bool( $editor_options['occurrencesHighlight'] ) ) {
 			$editor_options['occurrencesHighlight'] = $editor_options['occurrencesHighlight'] ? 'singleFile' : 'off';
 		}
 
+		// 'multiFile' highlights across every editor on the page, which is of little
+		// use for separate Custom HTML blocks, so treat it as 'singleFile'. It can
+		// come in through the VS Code settings import.
+		if ( isset( $editor_options['occurrencesHighlight'] ) && 'multiFile' === $editor_options['occurrencesHighlight'] ) {
+			$editor_options['occurrencesHighlight'] = 'singleFile';
+		}
+
+		// Changed to `'on' | 'off' | 'dimmed'` in monaco-editor 0.35.0.
+		// Upstream change: https://github.com/microsoft/vscode/pull/168220
+		// Type definitions: https://unpkg.com/monaco-editor@0.35.0/esm/vs/editor/editor.api.d.ts
 		if ( isset( $editor_options['renderFinalNewline'] ) && is_bool( $editor_options['renderFinalNewline'] ) ) {
 			$editor_options['renderFinalNewline'] = $editor_options['renderFinalNewline'] ? 'on' : 'off';
 		}
 
+		// Changed to `'never' | 'always' | 'selection'` in monaco-editor 0.27.0.
+		// Upstream change: https://github.com/microsoft/vscode/pull/128659
+		// Type definitions: https://unpkg.com/monaco-editor@0.27.0/esm/vs/editor/editor.api.d.ts
 		if (
 			isset( $editor_options['find']['seedSearchStringFromSelection'] ) &&
 			is_bool( $editor_options['find']['seedSearchStringFromSelection'] )
@@ -581,8 +928,61 @@ class Settings {
 
 		// `hover` was previously persisted as a boolean but monaco expects an
 		// object, so wrap the legacy boolean into the `enabled` property.
+		// Changed to `IEditorHoverOptions` in monaco-editor 0.14.0.
+		// Type definitions: https://unpkg.com/monaco-editor@0.14.0/esm/vs/editor/editor.api.d.ts
 		if ( isset( $editor_options['hover'] ) && is_bool( $editor_options['hover'] ) ) {
 			$editor_options['hover'] = array( 'enabled' => $editor_options['hover'] );
+		}
+
+		// `hover.enabled` was previously persisted as a boolean but monaco types
+		// it as a string enum, so map legacy booleans onto the new values.
+		// Changed to `'on' | 'off' | 'onKeyboardModifier'` in monaco-editor 0.56.0
+		// (not mentioned in the CHANGELOG).
+		// Upstream change: https://github.com/microsoft/vscode/pull/274001
+		// Type definitions: https://unpkg.com/monaco-editor@0.56.0/esm/vs/editor/editor.api.d.ts
+		if ( isset( $editor_options['hover']['enabled'] ) && is_bool( $editor_options['hover']['enabled'] ) ) {
+			$editor_options['hover']['enabled'] = $editor_options['hover']['enabled'] ? 'on' : 'off';
+		}
+
+		// `renderIndentGuides` and `highlightActiveIndentGuide` were replaced by
+		// `guides.indentation` and `guides.highlightActiveIndentation`, so move
+		// legacy values into `guides`. The legacy value wins over a saved `guides`
+		// value.
+		// Changed to `IGuidesOptions` in monaco-editor 0.29.0.
+		// Upstream change: https://github.com/microsoft/vscode/pull/133509
+		// Type definitions: https://unpkg.com/monaco-editor@0.29.0/esm/vs/editor/editor.api.d.ts
+		$legacy_guides = array(
+			'renderIndentGuides'         => 'indentation',
+			'highlightActiveIndentGuide' => 'highlightActiveIndentation',
+		);
+		foreach ( $legacy_guides as $legacy_key => $key ) {
+			if ( array_key_exists( $legacy_key, $editor_options ) ) {
+				// The other `guides` properties get their defaults when the options
+				// are loaded, and keep the current values when they are imported.
+				if ( ! isset( $editor_options['guides'] ) || ! is_array( $editor_options['guides'] ) ) {
+					$editor_options['guides'] = array();
+				}
+				$editor_options['guides'][ $key ] = $editor_options[ $legacy_key ];
+				unset( $editor_options[ $legacy_key ] );
+			}
+		}
+
+		// `quickSuggestions` was previously persisted as a boolean but the plugin
+		// now stores monaco's per-token-type object, so apply the legacy boolean
+		// to every token type, as monaco itself does.
+		if ( isset( $editor_options['quickSuggestions'] ) && is_bool( $editor_options['quickSuggestions'] ) ) {
+			$value                              = $editor_options['quickSuggestions'] ? 'on' : 'off';
+			$editor_options['quickSuggestions'] = array(
+				'other'    => $value,
+				'comments' => $value,
+				'strings'  => $value,
+			);
+		}
+
+		// `rulers` previously defaulted to `0` but monaco expects an array of
+		// columns, so map the legacy default onto an empty array.
+		if ( isset( $editor_options['rulers'] ) && 0 === $editor_options['rulers'] ) {
+			$editor_options['rulers'] = array();
 		}
 
 		return $editor_options;
@@ -593,15 +993,44 @@ class Settings {
 	 */
 	public static function get_options() {
 		// Override default options with option values.
-		$default_options = array();
-
-		foreach ( self::DEFAULT_OPTIONS as $key => $value ) {
-			$default_options[ $key ] = $value['default'];
-		}
+		$default_options = self::get_defaults( self::DEFAULT_OPTIONS );
 
 		$current_options = (array) get_option( Option::OPTION_NAMES['options'] );
 
 		return array_merge( $default_options, $current_options );
+	}
+
+	/**
+	 * Build an object schema from the default values.
+	 *
+	 * Besides the type, the allowed values (`enum`) and ranges (`minimum` and
+	 * `maximum`) are kept so that the REST API rejects values the settings UI
+	 * can't produce.
+	 */
+	public static function get_schema( $defaults ) {
+		$properties = array();
+
+		foreach ( $defaults as $key => $value ) {
+			if ( 'object' === $value['type'] ) {
+				$properties[ $key ] = self::get_schema( $value['items'] );
+				continue;
+			}
+
+			$properties[ $key ] = array(
+				'type' => $value['type'],
+			);
+
+			foreach ( array( 'items', 'enum', 'minimum', 'maximum' ) as $keyword ) {
+				if ( isset( $value[ $keyword ] ) ) {
+					$properties[ $key ][ $keyword ] = $value[ $keyword ];
+				}
+			}
+		}
+
+		return array(
+			'type'       => 'object',
+			'properties' => $properties,
+		);
 	}
 
 	/**
@@ -616,12 +1045,7 @@ class Settings {
 	 * Get all user roles.
 	 */
 	public static function get_user_roles() {
-		global $wp_roles;
-		if ( empty( $wp_roles ) ) {
-			$wp_roles = new \WP_Roles();
-		}
-
-		$roles            = $wp_roles->get_names();
+		$roles            = wp_roles()->get_names();
 		$translated_roles = array();
 
 		foreach ( $roles as $name => $display_name ) {
@@ -654,5 +1078,3 @@ class Settings {
 		return false;
 	}
 }
-
-new Settings();

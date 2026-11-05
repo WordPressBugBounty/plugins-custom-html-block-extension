@@ -10,6 +10,7 @@ export type EditorSettings = {
 	theme: string;
 	tabSize: number;
 	insertSpaces: boolean;
+	detectIndentation: boolean;
 	emmet: boolean;
 };
 
@@ -20,9 +21,15 @@ export type EditorSettings = {
 export type EditorOptions = {
 	acceptSuggestionOnEnter: 'on' | 'smart' | 'off';
 	autoClosingBrackets: 'always' | 'languageDefined' | 'beforeWhitespace' | 'never';
+	autoClosingDelete: 'always' | 'auto' | 'never';
+	autoClosingOvertype: 'always' | 'auto' | 'never';
 	autoClosingQuotes: 'always' | 'languageDefined' | 'beforeWhitespace' | 'never';
 	autoIndent: 'none' | 'keep' | 'brackets' | 'advanced' | 'full';
 	autoSurround: 'languageDefined' | 'quotes' | 'brackets' | 'never';
+	bracketPairColorization: {
+		enabled: boolean;
+		independentColorPoolPerBracketType: boolean;
+	};
 	columnSelection: boolean;
 	comments: {
 		insertSpace: boolean;
@@ -52,10 +59,19 @@ export type EditorOptions = {
 	fontWeight: string;
 	formatOnPaste: boolean;
 	glyphMargin: boolean;
+	guides: {
+		bracketPairs: boolean | 'active';
+		bracketPairsHorizontal: boolean | 'active';
+		highlightActiveBracketPair: boolean;
+		highlightActiveIndentation: boolean | 'always';
+		indentation: boolean;
+	};
 	hideCursorInOverviewRuler: boolean;
-	highlightActiveIndentGuide: boolean;
 	hover: {
-		enabled: boolean;
+		above: boolean;
+		delay: number;
+		enabled: 'on' | 'off' | 'onKeyboardModifier';
+		sticky: boolean;
 	};
 	letterSpacing: number;
 	lineDecorationsWidth: number;
@@ -67,6 +83,7 @@ export type EditorOptions = {
 	links: boolean;
 	matchBrackets: 'never' | 'near' | 'always';
 	minimap: {
+		autohide: 'none' | 'mouseover' | 'scroll';
 		enabled: boolean;
 		maxColumn: number;
 		renderCharacters: boolean;
@@ -85,17 +102,20 @@ export type EditorOptions = {
 		bottom: number;
 		top: number;
 	};
-	quickSuggestions: boolean;
+	quickSuggestions: {
+		other: 'on' | 'inline' | 'off';
+		comments: 'on' | 'inline' | 'off';
+		strings: 'on' | 'inline' | 'off';
+	};
 	quickSuggestionsDelay: number;
 	suggestOnTriggerCharacters: boolean;
 	renderControlCharacters: boolean;
 	renderFinalNewline: 'on' | 'off' | 'dimmed';
-	renderIndentGuides: boolean;
 	renderLineHighlight: 'none' | 'gutter' | 'line' | 'all';
 	renderLineHighlightOnlyWhenFocus: boolean;
 	renderWhitespace: 'none' | 'boundary' | 'selection' | 'trailing' | 'all';
 	roundedSelection: boolean;
-	rulers: number[];
+	rulers: ( number | { column: number; color: string } )[];
 	scrollBeyondLastColumn: number;
 	scrollBeyondLastLine: boolean;
 	scrollbar: {
@@ -114,16 +134,28 @@ export type EditorOptions = {
 	selectionHighlight: boolean;
 	showFoldingControls: 'always' | 'never' | 'mouseover';
 	smoothScrolling: boolean;
+	stickyScroll: {
+		enabled: boolean;
+		maxLineCount: number;
+	};
 	stickyTabStops: boolean;
 	suggest: {
+		insertMode: 'insert' | 'replace';
+		preview: boolean;
 		showIcons: boolean;
 	};
 	suggestFontSize: number;
 	suggestLineHeight: number;
 	unfoldOnClickAfterEndOfLine: boolean;
+	unicodeHighlight: {
+		ambiguousCharacters: boolean;
+		invisibleCharacters: boolean;
+		nonBasicASCII: boolean;
+	};
 	useTabStops: boolean;
 	wordWrap: 'off' | 'on' | 'wordWrapColumn' | 'bounded';
 	wordWrapColumn: number;
+	wordWrapIndicator: boolean;
 	wrappingIndent: 'none' | 'same' | 'indent' | 'deepIndent';
 };
 
@@ -148,19 +180,43 @@ export type FontFamily = {
 };
 
 /**
+ * Pair of editor settings and editor options.
+ */
+export type EditorConfig = {
+	editorSettings: EditorSettings;
+	editorOptions: EditorOptions;
+};
+
+/**
+ * Tabs of the admin page.
+ */
+export type AdminTab = 'editor-config' | 'tools' | 'options';
+
+/**
+ * Languages of the editor preview on the admin page.
+ */
+export type PreviewLanguage = 'html' | 'php' | 'javascript' | 'css';
+
+/**
  * Value provided by `AdminContext`.
  */
 export type AdminContextType = {
-	code: string;
+	code: Record< PreviewLanguage, string >;
+	previewLanguage: PreviewLanguage;
 	isWaiting: boolean;
 	editorSettings: EditorSettings;
 	editorOptions: EditorOptions;
+	savedEditorConfig: EditorConfig;
 	options: Options;
-	setCode: Dispatch< SetStateAction< string > >;
+	selectedTab: AdminTab;
+	setCode: Dispatch< SetStateAction< Record< PreviewLanguage, string > > >;
+	setPreviewLanguage: Dispatch< SetStateAction< PreviewLanguage > >;
 	setIsWaiting: Dispatch< SetStateAction< boolean > >;
 	setEditorOptions: Dispatch< SetStateAction< EditorOptions > >;
 	setEditorSettings: Dispatch< SetStateAction< EditorSettings > >;
+	setSavedEditorConfig: Dispatch< SetStateAction< EditorConfig > >;
 	setOptions: Dispatch< SetStateAction< Options > >;
+	setSelectedTab: Dispatch< SetStateAction< AdminTab > >;
 };
 
 /**

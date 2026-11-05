@@ -1,52 +1,18 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, _x } from '@wordpress/i18n';
 import { useContext } from '@wordpress/element';
-import { SelectControl } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
 
 /**
  * Internal dependencies
  */
 import type { EditorOptions } from '../../../types';
 import { AdminContext } from '../../index';
-import { useSearchVisibility } from '../index';
-import ItemHelp from '../components/item-help';
+import SettingItem from '../components/setting-item';
 
 export default function WrappingIndent() {
 	const { editorOptions, setEditorOptions } = useContext( AdminContext );
-
-	const title = __( 'Word wrap indent', 'custom-html-block-extension' );
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
-
-	const items = [
-		{
-			label: __( 'None', 'custom-html-block-extension' ),
-			image: 'editor-options/wrapping-indent_1.jpg',
-			value: 'none',
-			isDefault: true,
-		},
-		{
-			label: __( 'Same', 'custom-html-block-extension' ),
-			image: 'editor-options/wrapping-indent_2.jpg',
-			value: 'same',
-		},
-		{
-			label: __( 'Indent', 'custom-html-block-extension' ),
-			image: 'editor-options/wrapping-indent_3.jpg',
-			value: 'indent',
-		},
-		{
-			label: __( 'Deep indent', 'custom-html-block-extension' ),
-			image: 'editor-options/wrapping-indent_4.jpg',
-			value: 'deepIndent',
-		},
-	] as const;
 
 	const onChange = ( value: EditorOptions[ 'wrappingIndent' ] ) => {
 		setEditorOptions( {
@@ -56,26 +22,57 @@ export default function WrappingIndent() {
 	};
 
 	return (
-		<Stack
-			className="chbe-admin-editor-config__setting-item"
-			justify="start"
-			align="start"
-			wrap="wrap"
-			gap="sm"
-		>
-			<SelectControl< EditorOptions[ 'wrappingIndent' ] >
-				__next40pxDefaultSize
-				label={ title }
-				value={ editorOptions.wrappingIndent }
-				options={ items.map( ( { label, value } ) => ( { label, value } ) ) }
-				onChange={ onChange }
-			/>
-			<ItemHelp
-				onChange={ onChange }
-				title={ title }
-				items={ items }
-				value={ editorOptions.wrappingIndent }
-			/>
-		</Stack>
+		<SettingItem
+			control="select"
+			name="wrappingIndent"
+			label={ __( 'Wrapping Indent', 'custom-html-block-extension' ) }
+			value={ editorOptions.wrappingIndent }
+			onChange={ onChange }
+			defaultValue="same"
+			options={ [
+				{
+					label: _x( 'None', 'setting option label', 'custom-html-block-extension' ),
+					image: 'editor-options/wrapping-indent_1.jpg',
+					description: __(
+						'No indentation. Wrapped lines begin at column 1.',
+						'custom-html-block-extension'
+					),
+					value: 'none',
+				},
+				{
+					label: _x( 'Same', 'setting option label', 'custom-html-block-extension' ),
+					image: 'editor-options/wrapping-indent_2.jpg',
+					description: __(
+						'Wrapped lines get the same indentation as the parent.',
+						'custom-html-block-extension'
+					),
+					value: 'same',
+				},
+				{
+					label: _x( 'Indent', 'setting option label', 'custom-html-block-extension' ),
+					image: 'editor-options/wrapping-indent_3.jpg',
+					description: __(
+						'Wrapped lines get +1 indentation toward the parent.',
+						'custom-html-block-extension'
+					),
+					value: 'indent',
+				},
+				{
+					label: __( 'Deep indent', 'custom-html-block-extension' ),
+					image: 'editor-options/wrapping-indent_4.jpg',
+					description: __(
+						'Wrapped lines get +2 indentation toward the parent.',
+						'custom-html-block-extension'
+					),
+					value: 'deepIndent',
+				},
+			] }
+			help={ {
+				description: __(
+					'Controls the indentation of wrapped lines.',
+					'custom-html-block-extension'
+				),
+			} }
+		/>
 	);
 }

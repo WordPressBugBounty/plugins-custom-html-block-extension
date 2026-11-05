@@ -1,0 +1,61 @@
+/**
+ * WordPress dependencies
+ */
+import { __, _x } from '@wordpress/i18n';
+import { useContext } from '@wordpress/element';
+
+/**
+ * Internal dependencies
+ */
+import type { EditorOptions } from '../../../../types';
+import { AdminContext } from '../../../index';
+import SettingItem from '../../components/setting-item';
+
+export default function GuidesBracketPairs() {
+	const { editorOptions, setEditorOptions } = useContext( AdminContext );
+
+	const onChange = ( value: EditorOptions[ 'guides' ][ 'bracketPairs' ] ) => {
+		setEditorOptions( {
+			...editorOptions,
+			guides: {
+				...editorOptions.guides,
+				bracketPairs: value,
+			},
+		} );
+	};
+
+	return (
+		<SettingItem
+			control="select"
+			name="guides.bracketPairs"
+			label={ __( 'Bracket Pairs', 'custom-html-block-extension' ) }
+			value={ editorOptions.guides.bracketPairs }
+			onChange={ onChange }
+			defaultValue={ false }
+			options={ [
+				{
+					label: __( 'All bracket pairs', 'custom-html-block-extension' ),
+					value: true,
+					image: 'editor-options/guides/bracket-pairs_1.jpg',
+				},
+				{
+					label: __( 'Only the active bracket pair', 'custom-html-block-extension' ),
+					value: 'active',
+					image: 'editor-options/guides/bracket-pairs_2.jpg',
+				},
+				{
+					label: _x( 'None', 'setting option label', 'custom-html-block-extension' ),
+					value: false,
+					image: 'editor-options/guides/bracket-pairs_3.jpg',
+				},
+			] }
+			help={ {
+				description: __(
+					'Draw vertical lines between matching brackets, so you can see which code is inside each pair.',
+					'custom-html-block-extension'
+				),
+				colCount: 3,
+			} }
+		/>
+	);
+}

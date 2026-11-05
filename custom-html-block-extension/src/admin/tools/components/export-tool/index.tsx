@@ -2,29 +2,30 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import apiFetch from '@wordpress/api-fetch';
 import { useContext } from '@wordpress/element';
-import { Button } from '@wordpress/components';
-import { Card, CollapsibleCard, Stack, Text } from '@wordpress/ui';
+import { Button, Card, CollapsibleCard, Stack, Text } from '@wordpress/ui';
 import { useDispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
 
 /**
  * Internal dependencies
  */
+import { useWaitForSpinner } from '../../../../lib/helper';
 import { AdminContext } from '../../../index';
+import { getSettings } from '../../../api';
+import { exportEditorConfig } from '../../utils';
 
 export default function ExportTool() {
 	const { setIsWaiting } = useContext( AdminContext );
-	const { createSuccessNotice } = useDispatch( noticesStore );
+	const { createSuccessNotice, createErrorNotice } = useDispatch( noticesStore );
+	const waitForSpinner = useWaitForSpinner();
 
 	// Export editor config.
 	const onExportOptions = async () => {
 		setIsWaiting( true );
-		apiFetch( {
-			path: '/custom-html-block-extension/v1/get_editor_config',
-			method: 'POST',
-		} ).then( async ( response ) => {
+
+		try {
+			const { editorSettings, editorOptions } = await getSettings();
 			const date = new Date();
 			const fileDate =
 				date.getFullYear() +
@@ -32,23 +33,31 @@ export default function ExportTool() {
 				( '0' + ( date.getMonth() + 1 ) ).slice( -2 ) +
 				'-' +
 				( '0' + date.getDate() ).slice( -2 );
-			const json = JSON.stringify( response );
+			const json = JSON.stringify(
+				exportEditorConfig( editorSettings, editorOptions ),
+				null,
+				'\t'
+			);
+			if ( ! ( await waitForSpinner() ) ) {
+				return;
+			}
 			const blob = new window.Blob( [ json ], { type: 'application/json' } );
-			const href = await URL.createObjectURL( blob );
+			const href = URL.createObjectURL( blob );
 			const link = document.createElement( 'a' );
 			link.href = href;
 			link.download = 'chbe-export-' + fileDate + '.json';
 			document.body.appendChild( link );
-
-			setTimeout( () => {
-				link.click();
-				document.body.removeChild( link );
-				createSuccessNotice( __( 'Exported the editor config.', 'custom-html-block-extension' ), {
-					type: 'snackbar',
-				} );
-				setIsWaiting( false );
-			}, 600 );
-		} );
+			link.click();
+			document.body.removeChild( link );
+			URL.revokeObjectURL( href );
+			createSuccessNotice( __( 'Exported the editor config.', 'custom-html-block-extension' ), {
+				type: 'snackbar',
+			} );
+		} catch ( error ) {
+			createErrorNotice( ( error as Error ).message, { type: 'snackbar' } );
+		} finally {
+			setIsWaiting( false );
+		}
 	};
 
 	return (
@@ -60,11 +69,11 @@ export default function ExportTool() {
 				<Stack direction="column" align="start" gap="sm">
 					<Text render={ <p /> }>
 						{ __(
-							'Use the download button to export the editor settings. You can restore the editor config by importing the exported file on another WordPress site.',
+							'Use the download button to export the editor config. The file uses the same format as the VS Code settings.json, so you can import it on another WordPress site or copy the settings into VS Code.',
 							'custom-html-block-extension'
 						) }
 					</Text>
-					<Button variant="primary" onClick={ onExportOptions } __next40pxDefaultSize>
+					<Button onClick={ onExportOptions }>
 						{ __( 'Export', 'custom-html-block-extension' ) }
 					</Button>
 				</Stack>

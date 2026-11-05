@@ -1,0 +1,49 @@
+/**
+ * WordPress dependencies
+ */
+import { __ } from '@wordpress/i18n';
+import { useContext } from '@wordpress/element';
+
+/**
+ * Internal dependencies
+ */
+import { AdminContext } from '../../index';
+import SettingItem from '../components/setting-item';
+
+export default function WordWrapIndicator() {
+	const { editorOptions, setEditorOptions } = useContext( AdminContext );
+
+	const onChange = ( value: boolean ) => {
+		setEditorOptions( {
+			...editorOptions,
+			wordWrapIndicator: value,
+		} );
+	};
+
+	return (
+		<SettingItem
+			control="toggle"
+			name="wordWrapIndicator"
+			label={ __( 'Word Wrap Indicator', 'custom-html-block-extension' ) }
+			value={ editorOptions.wordWrapIndicator }
+			onChange={ onChange }
+			defaultValue={ false }
+			options={ [
+				{
+					value: true,
+					image: 'editor-options/word-wrap-indicator_1.jpg',
+				},
+				{
+					value: false,
+					image: 'editor-options/word-wrap-indicator_2.jpg',
+				},
+			] }
+			help={ {
+				description: __(
+					'Controls whether an indicator is rendered at the wrapping column of lines that wrap.',
+					'custom-html-block-extension'
+				),
+			} }
+		/>
+	);
+}

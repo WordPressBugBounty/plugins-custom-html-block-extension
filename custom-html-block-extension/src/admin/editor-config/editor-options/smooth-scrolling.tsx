@@ -3,25 +3,15 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useContext } from '@wordpress/element';
-import { ToggleControl } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
 
 /**
  * Internal dependencies
  */
 import { AdminContext } from '../../index';
-import { useSearchVisibility } from '../index';
-import ItemHelp from '../components/item-help';
+import SettingItem from '../components/setting-item';
 
 export default function SmoothScrolling() {
 	const { editorOptions, setEditorOptions } = useContext( AdminContext );
-
-	const title = __( 'Enable smooth scroll', 'custom-html-block-extension' );
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
 
 	const onChange = ( value: boolean ) => {
 		setEditorOptions( {
@@ -31,36 +21,29 @@ export default function SmoothScrolling() {
 	};
 
 	return (
-		<Stack
-			className="chbe-admin-editor-config__setting-item"
-			justify="start"
-			align="start"
-			wrap="wrap"
-			gap="sm"
-		>
-			<ToggleControl
-				label={ title }
-				checked={ editorOptions.smoothScrolling }
-				onChange={ onChange }
-			/>
-			<ItemHelp
-				onChange={ onChange }
-				title={ title }
-				items={ [
-					{
-						label: __( 'Enable', 'custom-html-block-extension' ),
-						value: true,
-						image: 'editor-options/smooth-scrolling_1.gif',
-					},
-					{
-						label: __( 'Disable', 'custom-html-block-extension' ),
-						value: false,
-						image: 'editor-options/smooth-scrolling_2.gif',
-						isDefault: true,
-					},
-				] }
-				value={ editorOptions.smoothScrolling }
-			/>
-		</Stack>
+		<SettingItem
+			control="toggle"
+			name="smoothScrolling"
+			label={ __( 'Smooth Scrolling', 'custom-html-block-extension' ) }
+			value={ editorOptions.smoothScrolling }
+			onChange={ onChange }
+			defaultValue={ false }
+			options={ [
+				{
+					value: true,
+					image: 'editor-options/smooth-scrolling_1.gif',
+				},
+				{
+					value: false,
+					image: 'editor-options/smooth-scrolling_2.gif',
+				},
+			] }
+			help={ {
+				description: __(
+					'Controls whether the editor will scroll using an animation.',
+					'custom-html-block-extension'
+				),
+			} }
+		/>
 	);
 }

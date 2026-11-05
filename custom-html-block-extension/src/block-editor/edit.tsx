@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, _x } from '@wordpress/i18n';
 import { useEffect, useState, useRef } from '@wordpress/element';
 import { useSelect, useDispatch, useRegistry } from '@wordpress/data';
 import { useViewportMatch } from '@wordpress/compose';
@@ -18,15 +18,13 @@ import {
 	ResizableBox,
 	ToolbarButton,
 	ToolbarGroup,
-	Modal,
-	Notice,
 	Placeholder,
 	__experimentalToggleGroupControl as ToggleGroupControl,
 	__experimentalToggleGroupControlOption as ToggleGroupControlOption,
 	__experimentalToolsPanel as ToolsPanel,
 	__experimentalToolsPanelItem as ToolsPanelItem,
 } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
+import { Dialog, Notice, Stack } from '@wordpress/ui';
 import { code, fullscreen } from '@wordpress/icons';
 import { __dangerousOptInToUnstableAPIsOnlyForCoreModules } from '@wordpress/private-apis';
 import type { Block, BlockEditProps } from '@wordpress/blocks';
@@ -36,6 +34,7 @@ import type { Block, BlockEditProps } from '@wordpress/blocks';
  */
 import './style.scss';
 import MonacoEditor, { type MonacoError } from '../components/monaco-editor';
+import useEditorConfigProps from './use-editor-config-props';
 
 const { InnerContent } = __dangerousOptInToUnstableAPIsOnlyForCoreModules(
 	'I acknowledge private features are not for use in themes or plugins and doing so will break in the next version of WordPress.',
@@ -59,6 +58,7 @@ type BlockWithInnerContent = Block & {
 
 const MIN_HEIGHT = 100;
 const MAX_HEIGHT = 1000;
+const BLOCK_DELIMITER_REGEX = /<!--\s+\/?wp:/;
 
 export default function HTMLEdit( {
 	clientId,
@@ -68,10 +68,10 @@ export default function HTMLEdit( {
 	toggleSelection,
 }: HTMLEditProps ) {
 	const { height, showPreviewByDefault } = attributes;
-	const { editorSettings, editorOptions } = window.chbeObj;
+	const editorConfigProps = useEditorConfigProps();
 
 	const [ isPreview, setIsPreview ] = useState< boolean >( showPreviewByDefault );
-	const [ isModalEditorOpen, setIsModalEditorOpen ] = useState< boolean >();
+	const [ isModalEditorOpen, setIsModalEditorOpen ] = useState< boolean >( false );
 
 	const [ errorMessage, setErrorMessage ] = useState< string >();
 
@@ -85,7 +85,7 @@ export default function HTMLEdit( {
 					// ) - button width (24px) - border (1px) + padding (16px) + spacing (20px)
 					offset: 259,
 				},
-		  }
+			}
 		: {};
 
 	const registry = useRegistry();
@@ -127,6 +127,15 @@ export default function HTMLEdit( {
 	// inner blocks mounted at their positions within the static markup.
 	const onChange = ( nextContent: string ) => {
 		if ( nextContent === content ) {
+			return;
+		}
+
+		// Plain HTML without block delimiters has no inner blocks, so skip
+		// parsing and update the inner content only.
+		if ( ! BLOCK_DELIMITER_REGEX.test( content ) && ! BLOCK_DELIMITER_REGEX.test( nextContent ) ) {
+			updateBlock( clientId, {
+				innerContent: nextContent ? [ nextContent ] : [],
+			} as Partial< Block > );
 			return;
 		}
 
@@ -200,7 +209,6 @@ export default function HTMLEdit( {
 						onDeselect={ () => setAttributes( { showPreviewByDefault: false } ) }
 					>
 						<ToggleGroupControl
-							__next40pxDefaultSize
 							isBlock
 							label={ __( 'Default mode', 'custom-html-block-extension' ) }
 							help={ __(
@@ -216,11 +224,11 @@ export default function HTMLEdit( {
 						>
 							<ToggleGroupControlOption
 								value="html"
-								label={ __( 'HTML', 'custom-html-block-extension' ) }
+								label={ _x( 'HTML', 'editor mode', 'custom-html-block-extension' ) }
 							/>
 							<ToggleGroupControlOption
 								value="preview"
-								label={ __( 'Preview', 'custom-html-block-extension' ) }
+								label={ _x( 'Preview', 'editor mode', 'custom-html-block-extension' ) }
 							/>
 						</ToggleGroupControl>
 					</ToolsPanelItem>
@@ -236,10 +244,10 @@ export default function HTMLEdit( {
 				</ToolbarGroup>
 				<ToolbarGroup>
 					<ToolbarButton isPressed={ ! isPreview } onClick={ switchToHTML }>
-						{ __( 'HTML', 'custom-html-block-extension' ) }
+						{ _x( 'HTML', 'editor mode', 'custom-html-block-extension' ) }
 					</ToolbarButton>
 					<ToolbarButton isPressed={ isPreview } onClick={ switchToPreview }>
-						{ __( 'Preview', 'custom-html-block-extension' ) }
+						{ _x( 'Preview', 'editor mode', 'custom-html-block-extension' ) }
 					</ToolbarButton>
 				</ToolbarGroup>
 			</BlockControls>
@@ -259,7 +267,11 @@ export default function HTMLEdit( {
 				</>
 			) : (
 				<Stack direction="column" gap="sm">
-					{ errorMessage && <Notice status="warning">{ errorMessage }</Notice> }
+					{ errorMessage && (
+						<Notice.Root intent="warning">
+							<Notice.Description>{ errorMessage }</Notice.Description>
+						</Notice.Root>
+					) }
 					<ResizableBox
 						size={ { height } }
 						minHeight={ MIN_HEIGHT }
@@ -279,38 +291,37 @@ export default function HTMLEdit( {
 					>
 						<MonacoEditor
 							language="html"
-							theme={ editorSettings.theme }
-							options={ editorOptions }
+							{ ...editorConfigProps }
 							value={ content }
-							useEmmet={ editorSettings.emmet }
-							tabSize={ editorSettings.tabSize }
-							insertSpaces={ editorSettings.insertSpaces }
 							onChange={ onChange }
 							onError={ onError }
 						/>
 					</ResizableBox>
 				</Stack>
 			) }
-			{ isModalEditorOpen && (
-				<Modal
-					title={ __( 'HTML editor', 'custom-html-block-extension' ) }
-					className="chbe-fullscreen-editor"
-					isFullScreen
-					onRequestClose={ () => setIsModalEditorOpen( false ) }
+			<Dialog.Root open={ isModalEditorOpen } onOpenChange={ setIsModalEditorOpen }>
+				<Dialog.Popup
+					size="full"
+					portal={ <Dialog.Portal className="chbe-fullscreen-editor-portal" /> }
 				>
-					<MonacoEditor
-						language="html"
-						theme={ editorSettings.theme }
-						options={ editorOptions }
-						value={ content }
-						useEmmet={ editorSettings.emmet }
-						tabSize={ editorSettings.tabSize }
-						insertSpaces={ editorSettings.insertSpaces }
-						onChange={ onChange }
-						onError={ onError }
-					/>
-				</Modal>
-			) }
+					<Dialog.Header>
+						<Dialog.Title>{ __( 'HTML editor', 'custom-html-block-extension' ) }</Dialog.Title>
+						<Dialog.CloseIconButton />
+					</Dialog.Header>
+					<Dialog.Content
+						className="chbe-fullscreen-editor__content"
+						render={ <Stack direction="column" /> }
+					>
+						<MonacoEditor
+							language="html"
+							{ ...editorConfigProps }
+							value={ content }
+							onChange={ onChange }
+							onError={ onError }
+						/>
+					</Dialog.Content>
+				</Dialog.Popup>
+			</Dialog.Root>
 		</div>
 	);
 }

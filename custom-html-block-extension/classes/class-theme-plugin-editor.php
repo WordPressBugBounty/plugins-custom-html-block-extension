@@ -31,7 +31,8 @@ class Theme_Plugin_Editor {
 	 */
 	public function wp_code_editor_settings( $settings, $args ) {
 		// Return the default settings if theme/plugin editor is not displayed.
-		if ( ! str_contains( $_SERVER['REQUEST_URI'], 'theme-editor.php' ) && ! str_contains( $_SERVER['REQUEST_URI'], 'plugin-editor.php' ) ) {
+		global $pagenow;
+		if ( 'theme-editor.php' !== $pagenow && 'plugin-editor.php' !== $pagenow ) {
 			return $settings;
 		}
 
@@ -85,7 +86,8 @@ class Theme_Plugin_Editor {
 		$language = null;
 
 		if ( isset( $_GET['file'] ) ) {
-			$ext = pathinfo( $_GET['file'], PATHINFO_EXTENSION );
+			$file = sanitize_text_field( wp_unslash( $_GET['file'] ) );
+			$ext  = pathinfo( $file, PATHINFO_EXTENSION );
 			if ( isset( $map_to_lang[ $ext ] ) ) {
 				$language = $map_to_lang[ $ext ];
 			}
@@ -95,39 +97,35 @@ class Theme_Plugin_Editor {
 			$language = 'php';
 		}
 
+		$asset_file = include CHBE_PATH . '/build/theme-plugin-editor.asset.php';
+
 		wp_enqueue_style(
 			CHBE_NAMESPACE,
 			CHBE_URL . '/build/style-theme-plugin-editor.css',
-			array(),
-			filemtime( CHBE_PATH . '/build/style-theme-plugin-editor.css' )
-		);
-
-		wp_enqueue_style(
-			CHBE_NAMESPACE . '-font',
-			CHBE_URL . '/assets/css/fira-code.css',
-			array(),
-			filemtime( CHBE_PATH . '/assets/css/fira-code.css' )
+			array( 'wp-theme' ),
+			$asset_file['version']
 		);
 
 		wp_enqueue_script(
 			CHBE_NAMESPACE,
 			CHBE_URL . '/build/theme-plugin-editor.js',
-			array(),
-			filemtime( CHBE_PATH . '/build/theme-plugin-editor.js' ),
+			$asset_file['dependencies'],
+			$asset_file['version'],
 			true
 		);
 
-		wp_localize_script(
+		Assets::enqueue_font_stylesheet();
+		Assets::add_script_data(
 			CHBE_NAMESPACE,
-			'chbeObj',
-			array(
-				'pluginUrl'      => CHBE_URL,
-				'editorSettings' => Settings::get_editor_settings(),
-				'editorOptions'  => Settings::get_editor_options(),
-				'fontFamily'     => Settings::get_font_families(),
-				'language'       => $language,
+			array_merge(
+				Assets::get_script_data(),
+				array(
+					'language' => $language,
+				)
 			)
 		);
+
+		wp_set_script_translations( CHBE_NAMESPACE, CHBE_NAMESPACE );
 	}
 }
 

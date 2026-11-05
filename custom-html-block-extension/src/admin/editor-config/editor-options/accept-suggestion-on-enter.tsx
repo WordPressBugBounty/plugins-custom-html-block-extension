@@ -1,52 +1,80 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, _x } from '@wordpress/i18n';
 import { createInterpolateElement, useContext } from '@wordpress/element';
-import { ToggleControl } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
 
 /**
  * Internal dependencies
  */
+import type { EditorOptions } from '../../../types';
 import { AdminContext } from '../../index';
-import { useSearchVisibility } from '../index';
-import ItemHelp from '../components/item-help';
+import SettingItem from '../components/setting-item';
 
 export default function AcceptSuggestionOnEnter() {
 	const { editorOptions, setEditorOptions } = useContext( AdminContext );
 
-	const title = __( 'Accept suggestions on enter key', 'custom-html-block-extension' );
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
-
-	// monaco types this option as 'on' | 'smart' | 'off'. The 'smart' mode is not
-	// exposed in the UI yet, so the toggle only maps between 'on' and 'off'.
-	const isEnabled = 'on' === editorOptions.acceptSuggestionOnEnter;
-
-	const onChange = ( value: boolean ) => {
+	const onChange = ( value: EditorOptions[ 'acceptSuggestionOnEnter' ] ) => {
 		setEditorOptions( {
 			...editorOptions,
-			acceptSuggestionOnEnter: value ? 'on' : 'off',
+			acceptSuggestionOnEnter: value,
 		} );
 	};
 
 	return (
-		<Stack
-			className="chbe-admin-editor-config__setting-item"
-			justify="start"
-			align="start"
-			wrap="wrap"
-			gap="sm"
-		>
-			<ToggleControl label={ title } checked={ isEnabled } onChange={ onChange } />
-			<ItemHelp
-				onChange={ onChange }
-				title={ title }
-				description={ createInterpolateElement(
+		<SettingItem
+			control="select"
+			name="acceptSuggestionOnEnter"
+			label={ __( 'Accept Suggestion On Enter', 'custom-html-block-extension' ) }
+			value={ editorOptions.acceptSuggestionOnEnter }
+			onChange={ onChange }
+			defaultValue="on"
+			options={ [
+				{
+					label: _x( 'Enable', 'setting option label', 'custom-html-block-extension' ),
+					value: 'on',
+					image: 'editor-options/accept-suggestion-on-enter_1.gif',
+					description: createInterpolateElement(
+						__(
+							'Pressing <code>Enter</code> accepts the suggestion, even if it is the same as the word already typed.',
+							'custom-html-block-extension'
+						),
+						{
+							code: <code />,
+						}
+					),
+				},
+				{
+					label: __( 'Only when it makes a text change', 'custom-html-block-extension' ),
+					value: 'smart',
+					image: 'editor-options/accept-suggestion-on-enter_2.gif',
+					description: createInterpolateElement(
+						__(
+							'Only accept a suggestion with <code>Enter</code> when it makes a textual change.',
+							'custom-html-block-extension'
+						),
+						{
+							code: <code />,
+						}
+					),
+				},
+				{
+					label: _x( 'Disable', 'setting option label', 'custom-html-block-extension' ),
+					value: 'off',
+					image: 'editor-options/accept-suggestion-on-enter_3.gif',
+					description: createInterpolateElement(
+						__(
+							'Pressing <code>Enter</code> always inserts a new line. Use <code>Tab</code> to accept the suggestion.',
+							'custom-html-block-extension'
+						),
+						{
+							code: <code />,
+						}
+					),
+				},
+			] }
+			help={ {
+				description: createInterpolateElement(
 					__(
 						'Accept suggestions on <code>Enter</code> key in addition to <code>Tab</code> key.',
 						'custom-html-block-extension'
@@ -54,11 +82,9 @@ export default function AcceptSuggestionOnEnter() {
 					{
 						code: <code />,
 					}
-				) }
-				isToggle
-				defaultToggle
-				value={ isEnabled }
-			/>
-		</Stack>
+				),
+				colCount: 3,
+			} }
+		/>
 	);
 }

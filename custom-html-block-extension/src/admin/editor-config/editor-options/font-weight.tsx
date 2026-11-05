@@ -3,14 +3,12 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useContext } from '@wordpress/element';
-import { SelectControl } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
 
 /**
  * Internal dependencies
  */
 import { AdminContext } from '../../index';
-import { useSearchVisibility } from '../index';
+import SettingItem from '../components/setting-item';
 
 type FontWeightProps = {
 	fontWeights: number[];
@@ -18,13 +16,6 @@ type FontWeightProps = {
 
 export default function FontWeight( { fontWeights }: FontWeightProps ) {
 	const { editorOptions, setEditorOptions } = useContext( AdminContext );
-
-	const title = __( 'Font weight', 'custom-html-block-extension' );
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
 
 	const onChange = ( value: string ) => {
 		setEditorOptions( {
@@ -34,17 +25,16 @@ export default function FontWeight( { fontWeights }: FontWeightProps ) {
 	};
 
 	return (
-		<Stack className="chbe-admin-editor-config__setting-item" gap="sm">
-			<SelectControl
-				__next40pxDefaultSize
-				label={ title }
-				value={ String( editorOptions.fontWeight ) }
-				options={ fontWeights.map( ( fontWeight ) => ( {
-					label: String( fontWeight ),
-					value: String( fontWeight ),
-				} ) ) }
-				onChange={ onChange }
-			/>
-		</Stack>
+		<SettingItem
+			control="select"
+			name="fontWeight"
+			label={ __( 'Font Weight', 'custom-html-block-extension' ) }
+			value={ String( editorOptions.fontWeight ) }
+			onChange={ onChange }
+			options={ fontWeights.map( ( fontWeight ) => ( {
+				label: String( fontWeight ),
+				value: String( fontWeight ),
+			} ) ) }
+		/>
 	);
 }

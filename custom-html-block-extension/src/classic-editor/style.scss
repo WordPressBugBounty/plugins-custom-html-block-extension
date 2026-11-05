@@ -1,12 +1,8 @@
-// WordPress base styles
-@use "@wordpress/base-styles/variables" as variables;
-@use "@wordpress/base-styles/colors" as colors;
-
 // Monaco Editor common styles
 @use "../components/monaco-editor/style";
 
 // Monaco Editor
-#monaco-editor {
+.chbe-monaco-editor {
 	min-height: 300px;
 }
 

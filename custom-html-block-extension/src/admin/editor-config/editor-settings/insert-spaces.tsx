@@ -1,42 +1,17 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
-import { useContext } from '@wordpress/element';
-import {
-	__experimentalToggleGroupControl as ToggleGroupControl,
-	__experimentalToggleGroupControlOption as ToggleGroupControlOption,
-} from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
+import { __, _x } from '@wordpress/i18n';
+import { createInterpolateElement, useContext } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
 import { AdminContext } from '../../index';
-import { useSearchVisibility } from '../index';
+import SettingItem from '../components/setting-item';
 
 export default function InsertSpaces() {
 	const { editorSettings, setEditorSettings } = useContext( AdminContext );
-
-	const title = __( 'Indent type', 'custom-html-block-extension' );
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
-
-	const items = [
-		{
-			label: __( 'Tab', 'custom-html-block-extension' ),
-			image: 'editor-options/multi-cursor-paste_1.gif',
-			value: 'tab',
-		},
-		{
-			label: __( 'Space', 'custom-html-block-extension' ),
-			image: 'editor-options/multi-cursor-paste_2.gif',
-			value: 'space',
-		},
-	];
 
 	const onChange = ( value: string | number | undefined ) => {
 		setEditorSettings( {
@@ -46,18 +21,36 @@ export default function InsertSpaces() {
 	};
 
 	return (
-		<Stack className="chbe-admin-editor-config__setting-item" gap="sm">
-			<ToggleGroupControl
-				size="__unstable-large"
-				label={ __( 'Indent type', 'custom-html-block-extension' ) }
-				value={ editorSettings.insertSpaces ? 'space' : 'tab' }
-				onChange={ onChange }
-				isBlock
-			>
-				{ items.map( ( item ) => (
-					<ToggleGroupControlOption key={ item.value } value={ item.value } label={ item.label } />
-				) ) }
-			</ToggleGroupControl>
-		</Stack>
+		<SettingItem
+			control="toggleGroup"
+			name="insertSpaces"
+			label={ __( 'Insert Spaces', 'custom-html-block-extension' ) }
+			value={ editorSettings.insertSpaces ? 'space' : 'tab' }
+			onChange={ onChange }
+			defaultValue="space"
+			options={ [
+				{
+					label: _x( 'Tab', 'setting option label', 'custom-html-block-extension' ),
+					image: 'editor-settings/insert-spaces_1.jpg',
+					value: 'tab',
+				},
+				{
+					label: _x( 'Space', 'setting option label', 'custom-html-block-extension' ),
+					image: 'editor-settings/insert-spaces_2.jpg',
+					value: 'space',
+				},
+			] }
+			help={ {
+				description: createInterpolateElement(
+					__(
+						'Controls whether to insert a tab character or spaces when pressing the <code>Tab</code> key.',
+						'custom-html-block-extension'
+					),
+					{
+						code: <code />,
+					}
+				),
+			} }
+		/>
 	);
 }

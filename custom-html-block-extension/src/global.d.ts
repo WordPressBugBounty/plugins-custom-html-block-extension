@@ -12,32 +12,25 @@ declare global {
 	// Data localized from PHP via `wp_localize_script`.
 	interface ChbeObj {
 		pluginUrl: string;
+		monacoVersion: string;
 		version: string;
 		editorSettings: EditorSettings;
 		editorOptions: EditorOptions;
 		options: Options;
 		fontFamily: FontFamily[];
 		userRoles: { label: string; value: string }[];
-		dismissWelcomeGuide: boolean;
 		language?: string;
-	}
-
-	// The AMD loader exposed by the monaco `loader.js` script.
-	interface MonacoAmdRequire {
-		( modules: string[], onLoad: () => void ): void;
-		config: ( config: { paths: Record< string, string > } ) => void;
 	}
 
 	interface Window {
 		chbeObj: ChbeObj;
 		monaco?: typeof Monaco;
-		require: MonacoAmdRequire;
-		isInitialized?: boolean;
-		enabledEmmet?: boolean;
+		MonacoEnvironment?: Monaco.Environment;
+		disposeEmmet?: () => void;
+		chbeHasMonacoExtensions?: boolean;
 		editor?: Monaco.editor.IStandaloneCodeEditor;
-		WebKitMutationObserver?: typeof MutationObserver;
 		wp?: unknown;
-		jQuery?: unknown;
+		jQuery?: ( callback: () => void ) => unknown;
 	}
 }
 
@@ -54,6 +47,16 @@ declare module 'react' {
 // `privateApis` is exported at runtime but missing from the package types.
 declare module '@wordpress/block-editor' {
 	export const privateApis: unknown;
+}
+
+// The `__unstableIsHtml` option of `useBlockProps` is missing from the package types.
+declare module '@wordpress/block-editor/components/use-block-props' {
+	interface UseBlockProps {
+		< Props extends Record< string, unknown > >(
+			props: Props,
+			options: { __unstableIsHtml?: boolean }
+		): Omit< Props, 'ref' > & Merged & Reserved;
+	}
 }
 
 export {};

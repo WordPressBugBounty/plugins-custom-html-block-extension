@@ -3,26 +3,17 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useContext } from '@wordpress/element';
-import { ToggleControl } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
 
 /**
  * Internal dependencies
  */
 import { AdminContext } from '../../../index';
-import { EditorConfigContext, useSearchVisibility } from '../../index';
-import ItemHelp from '../../components/item-help';
+import { EditorConfigContext } from '../../index';
+import SettingItem from '../../components/setting-item';
 
 export default function ScrollbarScrollByPage() {
 	const { editorOptions, setEditorOptions } = useContext( AdminContext );
 	const { onRefreshEditor } = useContext( EditorConfigContext );
-
-	const title = __( 'Scroll by page', 'custom-html-block-extension' );
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
 
 	const onChange = ( value: boolean ) => {
 		onRefreshEditor();
@@ -36,30 +27,20 @@ export default function ScrollbarScrollByPage() {
 	};
 
 	return (
-		<Stack
-			className="chbe-admin-editor-config__setting-item"
-			justify="start"
-			align="start"
-			wrap="wrap"
-			gap="sm"
-		>
-			<ToggleControl
-				label={ title }
-				checked={ editorOptions.scrollbar.scrollByPage }
-				onChange={ onChange }
-			/>
-			<ItemHelp
-				onChange={ onChange }
-				title={ title }
-				description={ __(
-					'Scroll by page when the scroll bar is clicked.',
+		<SettingItem
+			control="toggle"
+			name="scrollbar.scrollByPage"
+			label={ __( 'Scroll By Page', 'custom-html-block-extension' ) }
+			value={ editorOptions.scrollbar.scrollByPage }
+			onChange={ onChange }
+			defaultValue={ false }
+			help={ {
+				description: __(
+					'Controls whether clicks scroll by page or jump to click position.',
 					'custom-html-block-extension'
-				) }
-				isToggle
-				defaultToggle={ false }
-				image="editor-options/scrollbar/scroll-by-page.gif"
-				value={ editorOptions.scrollbar.scrollByPage }
-			/>
-		</Stack>
+				),
+				image: 'editor-options/scrollbar/scroll-by-page.gif',
+			} }
+		/>
 	);
 }

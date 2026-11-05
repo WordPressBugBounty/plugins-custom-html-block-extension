@@ -1,5 +1,3 @@
-@use "~@wordpress/base-styles/variables" as variables;
-
 // Toggle button
 .chbe-admin-editor-config-item-help-toggle {
 	margin-top: -2px;
@@ -7,7 +5,10 @@
 
 // Modal component
 .chbe-admin-editor-config-item-help-modal {
-	max-width: 800px;
+	// Fit the width to the content, up to the size's max-width.
+	width: max-content;
+	// stylelint-disable-next-line @stylistic/max-line-length
+	max-width: min(var(--wpds-dimension-surface-width-2xl), calc(100vw - 2 * var(--viewport-inset)));
 
 	img {
 		display: block;
@@ -15,6 +16,12 @@
 	}
 
 	.chbe-admin-editor-config-item-help-modal__decription {
+
+		&,
+		> * {
+			margin-top: 0;
+			margin-bottom: 0;
+		}
 
 		ul {
 			padding-left: 1.5em;
@@ -24,33 +31,35 @@
 	}
 
 	.chbe-admin-editor-config-item-help-modal__items {
-		display: flex;
-		flex-wrap: wrap;
-		gap: variables.$grid-unit-30;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--wpds-dimension-gap-xl);
 
-		@media screen and (max-width: 782px) {
-			flex-flow: column;
+		@media screen and (min-width: 783px) {
+
+			@each $count in 2, 3, 4, 5 {
+				&.is-col-#{$count} {
+					grid-template-columns: repeat($count, minmax(0, 1fr));
+				}
+			}
 		}
 
-		&.is-col-2 > * {
-			width: calc(50% - 12px);
+		&:has(.chbe-admin-editor-config-item-help-modal__item-description) > * {
+			grid-row: span 3;
 		}
+	}
 
-		&.is-col-3 > * {
-			width: calc(33.33% - 16px);
-		}
-
-		&.is-col-4 > * {
-			width: calc(25% - 18px);
-		}
-
-		&.is-col-5 > * {
-			width: calc(20% - 20px);
-		}
+	// Share the title, image, and description rows across all items.
+	.chbe-admin-editor-config-item-help-modal__item {
+		display: grid;
+		grid-row: span 2;
+		grid-template-rows: subgrid;
+		row-gap: var(--wpds-dimension-gap-lg);
+		place-items: start;
 	}
 
 	.chbe-admin-editor-config-item-help-modal__item-button {
 		height: auto;
-		padding: variables.$grid-unit-05;
+		padding: var(--wpds-dimension-padding-xs);
 	}
 }

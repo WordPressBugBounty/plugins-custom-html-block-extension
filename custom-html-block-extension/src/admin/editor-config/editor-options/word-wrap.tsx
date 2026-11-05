@@ -1,62 +1,18 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, _x } from '@wordpress/i18n';
 import { useContext } from '@wordpress/element';
-import { SelectControl } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
 
 /**
  * Internal dependencies
  */
 import type { EditorOptions } from '../../../types';
 import { AdminContext } from '../../index';
-import { useSearchVisibility } from '../index';
-import ItemHelp from '../components/item-help';
+import SettingItem from '../components/setting-item';
 
 export default function WordWrap() {
 	const { editorOptions, setEditorOptions } = useContext( AdminContext );
-
-	const title = __( 'Word wrap', 'custom-html-block-extension' );
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
-
-	const items = [
-		{
-			label: __( 'Off', 'custom-html-block-extension' ),
-			value: 'off',
-			image: 'editor-options/word-wrap_1.jpg',
-			description: __( 'The lines will never wrap.', 'custom-html-block-extension' ),
-			isDefault: true,
-		},
-		{
-			label: __( 'On', 'custom-html-block-extension' ),
-			value: 'on',
-			image: 'editor-options/word-wrap_2.jpg',
-			description: __( 'The lines will always wrap.', 'custom-html-block-extension' ),
-		},
-		{
-			label: __( 'Depends on word wrap column', 'custom-html-block-extension' ),
-			value: 'wordWrapColumn',
-			image: 'editor-options/word-wrap_3.jpg',
-			description: __(
-				'The lines will be wrapped according to "Word wrap column" setting.',
-				'custom-html-block-extension'
-			),
-		},
-		{
-			label: __( 'Flexible', 'custom-html-block-extension' ),
-			value: 'bounded',
-			image: 'editor-options/word-wrap_4.jpg',
-			description: __(
-				"The lines will be wrapped at the lesser of editor's width or word wrap column setting.",
-				'custom-html-block-extension'
-			),
-		},
-	] as const;
 
 	const onChange = ( value: EditorOptions[ 'wordWrap' ] ) => {
 		setEditorOptions( {
@@ -66,26 +22,51 @@ export default function WordWrap() {
 	};
 
 	return (
-		<Stack
-			className="chbe-admin-editor-config__setting-item"
-			justify="start"
-			align="start"
-			wrap="wrap"
-			gap="sm"
-		>
-			<SelectControl< EditorOptions[ 'wordWrap' ] >
-				__next40pxDefaultSize
-				label={ title }
-				value={ editorOptions.wordWrap }
-				options={ items.map( ( { label, value } ) => ( { label, value } ) ) }
-				onChange={ onChange }
-			/>
-			<ItemHelp
-				onChange={ onChange }
-				title={ title }
-				items={ items }
-				value={ editorOptions.wordWrap }
-			/>
-		</Stack>
+		<SettingItem
+			control="select"
+			name="wordWrap"
+			label={ __( 'Word Wrap', 'custom-html-block-extension' ) }
+			value={ editorOptions.wordWrap }
+			onChange={ onChange }
+			defaultValue="off"
+			options={ [
+				{
+					label: _x( 'Off', 'setting option label', 'custom-html-block-extension' ),
+					value: 'off',
+					image: 'editor-options/word-wrap_1.gif',
+					description: __( 'Lines will never wrap.', 'custom-html-block-extension' ),
+				},
+				{
+					label: _x( 'On', 'setting option label', 'custom-html-block-extension' ),
+					value: 'on',
+					image: 'editor-options/word-wrap_2.gif',
+					description: __(
+						'Lines will wrap at the viewport width.',
+						'custom-html-block-extension'
+					),
+				},
+				{
+					label: __( 'Depends on word wrap column', 'custom-html-block-extension' ),
+					value: 'wordWrapColumn',
+					image: 'editor-options/word-wrap_3.gif',
+					description: __(
+						'Lines will wrap at "Word Wrap Column".',
+						'custom-html-block-extension'
+					),
+				},
+				{
+					label: _x( 'Flexible', 'setting option label', 'custom-html-block-extension' ),
+					value: 'bounded',
+					image: 'editor-options/word-wrap_4.gif',
+					description: __(
+						'Lines will wrap at the minimum of viewport and "Word Wrap Column".',
+						'custom-html-block-extension'
+					),
+				},
+			] }
+			help={ {
+				description: __( 'Controls how lines should wrap.', 'custom-html-block-extension' ),
+			} }
+		/>
 	);
 }

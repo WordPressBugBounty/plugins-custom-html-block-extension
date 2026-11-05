@@ -1,60 +1,73 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
+import { __, _x } from '@wordpress/i18n';
 import { useContext } from '@wordpress/element';
-import { ToggleControl } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
 
 /**
  * Internal dependencies
  */
+import type { EditorOptions } from '../../../../types';
 import { AdminContext } from '../../../index';
-import { useSearchVisibility } from '../../index';
-import ItemHelp from '../../components/item-help';
+import SettingItem from '../../components/setting-item';
 
 export default function FindSeedSearchStringFromSelection() {
 	const { editorOptions, setEditorOptions } = useContext( AdminContext );
 
-	const title = __( 'Seed search string from selection', 'custom-html-block-extension' );
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
-
-	// monaco types this option as 'never' | 'always' | 'selection'. The 'selection'
-	// mode is not exposed in the UI yet, so the toggle only maps between 'always'
-	// and 'never'.
-	const isEnabled = 'always' === editorOptions.find.seedSearchStringFromSelection;
-
-	const onChange = ( value: boolean ) => {
+	const onChange = ( value: EditorOptions[ 'find' ][ 'seedSearchStringFromSelection' ] ) => {
 		setEditorOptions( {
 			...editorOptions,
 			find: {
 				...editorOptions.find,
-				seedSearchStringFromSelection: value ? 'always' : 'never',
+				seedSearchStringFromSelection: value,
 			},
 		} );
 	};
 
 	return (
-		<Stack
-			className="chbe-admin-editor-config__setting-item"
-			justify="start"
-			align="start"
-			wrap="wrap"
-			gap="sm"
-		>
-			<ToggleControl label={ title } checked={ isEnabled } onChange={ onChange } />
-			<ItemHelp
-				onChange={ onChange }
-				title={ title }
-				isToggle
-				defaultToggle
-				image="editor-options/find/seed-search-string-from-selection.gif"
-				value={ isEnabled }
-			/>
-		</Stack>
+		<SettingItem
+			control="select"
+			name="find.seedSearchStringFromSelection"
+			label={ __( 'Seed Search String From Selection', 'custom-html-block-extension' ) }
+			value={ editorOptions.find.seedSearchStringFromSelection }
+			onChange={ onChange }
+			defaultValue="always"
+			options={ [
+				{
+					label: _x( 'Always', 'setting option label', 'custom-html-block-extension' ),
+					value: 'always',
+					image: 'editor-options/find/seed-search-string-from-selection_1.gif',
+					description: __(
+						'Always seed search string from the editor selection, including word at cursor position.',
+						'custom-html-block-extension'
+					),
+				},
+				{
+					label: __( 'Only from selected text', 'custom-html-block-extension' ),
+					value: 'selection',
+					image: 'editor-options/find/seed-search-string-from-selection_2.gif',
+					description: __(
+						'Only seed search string from the editor selection.',
+						'custom-html-block-extension'
+					),
+				},
+				{
+					label: _x( 'Never', 'setting option label', 'custom-html-block-extension' ),
+					value: 'never',
+					image: 'editor-options/find/seed-search-string-from-selection_3.gif',
+					description: __(
+						'Never seed search string from the editor selection.',
+						'custom-html-block-extension'
+					),
+				},
+			] }
+			help={ {
+				description: __(
+					'Controls whether the search string in the Find Widget is seeded from the editor selection.',
+					'custom-html-block-extension'
+				),
+				colCount: 3,
+			} }
+		/>
 	);
 }

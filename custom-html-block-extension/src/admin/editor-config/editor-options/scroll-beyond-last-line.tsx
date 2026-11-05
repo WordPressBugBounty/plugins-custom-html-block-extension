@@ -3,25 +3,15 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useContext } from '@wordpress/element';
-import { ToggleControl } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
 
 /**
  * Internal dependencies
  */
 import { AdminContext } from '../../index';
-import { useSearchVisibility } from '../index';
-import ItemHelp from '../components/item-help';
+import SettingItem from '../components/setting-item';
 
 export default function ScrollBeyondLastLine() {
 	const { editorOptions, setEditorOptions } = useContext( AdminContext );
-
-	const title = __( 'Scroll past the last line', 'custom-html-block-extension' );
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
 
 	const onChange = ( value: boolean ) => {
 		setEditorOptions( {
@@ -31,36 +21,29 @@ export default function ScrollBeyondLastLine() {
 	};
 
 	return (
-		<Stack
-			className="chbe-admin-editor-config__setting-item"
-			justify="start"
-			align="start"
-			wrap="wrap"
-			gap="sm"
-		>
-			<ToggleControl
-				label={ title }
-				checked={ editorOptions.scrollBeyondLastLine }
-				onChange={ onChange }
-			/>
-			<ItemHelp
-				onChange={ onChange }
-				title={ title }
-				items={ [
-					{
-						label: __( 'Enable', 'custom-html-block-extension' ),
-						value: true,
-						image: 'editor-options/scroll-beyond-last-line_1.gif',
-						isDefault: true,
-					},
-					{
-						label: __( 'Disable', 'custom-html-block-extension' ),
-						value: false,
-						image: 'editor-options/scroll-beyond-last-line_2.gif',
-					},
-				] }
-				value={ editorOptions.scrollBeyondLastLine }
-			/>
-		</Stack>
+		<SettingItem
+			control="toggle"
+			name="scrollBeyondLastLine"
+			label={ __( 'Scroll Beyond Last Line', 'custom-html-block-extension' ) }
+			value={ editorOptions.scrollBeyondLastLine }
+			onChange={ onChange }
+			defaultValue
+			options={ [
+				{
+					value: true,
+					image: 'editor-options/scroll-beyond-last-line_1.gif',
+				},
+				{
+					value: false,
+					image: 'editor-options/scroll-beyond-last-line_2.gif',
+				},
+			] }
+			help={ {
+				description: __(
+					'Controls whether the editor will scroll beyond the last line.',
+					'custom-html-block-extension'
+				),
+			} }
+		/>
 	);
 }

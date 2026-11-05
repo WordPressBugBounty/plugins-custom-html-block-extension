@@ -39,8 +39,18 @@ class Admin {
 	 */
 	public function admin_enqueue_scripts( $hook_suffix ) {
 		// Enqueue pointer.
-		$dismissed = explode( ',', get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
-		if ( ! in_array( CHBE_NAMESPACE . '-pointer', $dismissed, true ) ) {
+		$pointer      = CHBE_NAMESPACE . '-pointer';
+		$dismissed    = array_filter( explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) ) );
+		$is_dismissed = in_array( $pointer, $dismissed, true );
+
+		// Dismiss the pointer once the user visits the settings page.
+		if ( ! $is_dismissed && 'settings_page_' . CHBE_NAMESPACE === $hook_suffix ) {
+			$dismissed[] = $pointer;
+			update_user_meta( get_current_user_id(), 'dismissed_wp_pointers', implode( ',', $dismissed ) );
+			$is_dismissed = true;
+		}
+
+		if ( current_user_can( 'manage_options' ) && ! $is_dismissed ) {
 			$content  = '<h3>' . __( 'Custom HTML Block Extension', 'custom-html-block-extension' ) . '</h3>';
 			$content .= '<p>';
 			$content .= sprintf(
@@ -60,7 +70,7 @@ class Admin {
 				CHBE_NAMESPACE . '-pointer',
 				CHBE_URL . '/assets/js/pointer.js',
 				array( 'wp-pointer' ),
-				filemtime( CHBE_PATH . '/assets/js/pointer.js' ),
+				CHBE_VERSION,
 				true
 			);
 
@@ -69,7 +79,7 @@ class Admin {
 				'chbePointer',
 				array(
 					'content' => $content,
-					'name'    => CHBE_NAMESPACE . '-pointer',
+					'name'    => $pointer,
 				)
 			);
 		}
@@ -85,37 +95,28 @@ class Admin {
 			CHBE_NAMESPACE . '-admin',
 			CHBE_URL . '/build/style-admin.css',
 			array( 'wp-components' ),
-			filemtime( CHBE_PATH . '/build/style-admin.css' )
-		);
-
-		wp_enqueue_style(
-			CHBE_NAMESPACE . '-admin-font',
-			CHBE_URL . '/assets/css/fira-code.css',
-			array(),
-			filemtime( CHBE_PATH . '/assets/css/fira-code.css' )
+			$asset_file['version']
 		);
 
 		wp_enqueue_script(
 			CHBE_NAMESPACE . '-admin',
 			CHBE_URL . '/build/admin.js',
 			$asset_file['dependencies'],
-			filemtime( CHBE_PATH . '/build/admin.js' ),
+			$asset_file['version'],
 			true
 		);
 
 		// Enqueue option page scripts (related to constants)
-		wp_localize_script(
+		Assets::enqueue_font_stylesheet();
+		Assets::add_script_data(
 			CHBE_NAMESPACE . '-admin',
-			'chbeObj',
-			array(
-				'pluginUrl'           => CHBE_URL,
-				'version'             => CHBE_VERSION,
-				'editorSettings'      => Settings::get_editor_settings(),
-				'editorOptions'       => Settings::get_editor_options(),
-				'options'             => Settings::get_options(),
-				'userRoles'           => Settings::get_user_roles(),
-				'fontFamily'          => Settings::get_font_families(),
-				'dismissWelcomeGuide' => get_option( Option::OPTION_NAMES['dismiss_welcome_guide'] ),
+			array_merge(
+				Assets::get_script_data(),
+				array(
+					'version'   => CHBE_VERSION,
+					'options'   => Settings::get_options(),
+					'userRoles' => Settings::get_user_roles(),
+				)
 			)
 		);
 
@@ -127,24 +128,13 @@ class Admin {
 	 */
 	public function register_settings() {
 		// Register editor settings.
-		$properties_editor_settings = array();
-		$default_editor_settings    = array();
-
-		foreach ( Settings::DEFAULT_EDITOR_SETTINGS as $key => $value ) {
-			$properties_editor_settings[ $key ] = array(
-				'type' => $value['type'],
-			);
-			$default_editor_settings[ $key ]    = $value['default'];
-		}
+		$default_editor_settings = Settings::get_defaults( Settings::DEFAULT_EDITOR_SETTINGS );
 
 		$args_editor_settings = array(
 			'type'         => 'object',
 			'description'  => __( 'Editor settings.', 'custom-html-block-extension' ),
 			'show_in_rest' => array(
-				'schema' => array(
-					'type'       => 'object',
-					'properties' => $properties_editor_settings,
-				),
+				'schema' => Settings::get_schema( Settings::DEFAULT_EDITOR_SETTINGS ),
 			),
 			'default'      => $default_editor_settings,
 		);
@@ -152,38 +142,13 @@ class Admin {
 		register_setting( CHBE_NAMESPACE, Option::OPTION_NAMES['editor_settings'], $args_editor_settings );
 
 		// Register editor options.
-		$properties_editor_options = array();
-		$default_editor_options    = array();
-
-		foreach ( Settings::DEFAULT_EDITOR_OPTIONS as $key => $value ) {
-			$properties_editor_options[ $key ] = array(
-				'type' => $value['type'],
-			);
-
-			if ( 'object' === $value['type'] ) {
-				$properties_editor_options[ $key ]['properties'] = array();
-
-				$default_editor_options[ $key ] = array();
-
-				foreach ( $value['items'] as $sub_key => $sub_value ) {
-					$properties_editor_options[ $key ]['properties'][ $sub_key ] = array(
-						'type' => $sub_value['type'],
-					);
-					$default_editor_options[ $key ][ $sub_key ]                  = $sub_value['default'];
-				}
-			} else {
-				$default_editor_options[ $key ] = $value['default'];
-			}
-		}
+		$default_editor_options = Settings::get_defaults( Settings::DEFAULT_EDITOR_OPTIONS );
 
 		$args_editor_options = array(
 			'type'         => 'object',
 			'description'  => __( 'Editor settings.', 'custom-html-block-extension' ),
 			'show_in_rest' => array(
-				'schema' => array(
-					'type'       => 'object',
-					'properties' => $properties_editor_options,
-				),
+				'schema' => Settings::get_schema( Settings::DEFAULT_EDITOR_OPTIONS ),
 			),
 			'default'      => $default_editor_options,
 		);
@@ -191,24 +156,13 @@ class Admin {
 		register_setting( CHBE_NAMESPACE, Option::OPTION_NAMES['editor_options'], $args_editor_options );
 
 		// Register options.
-		$properties_options = array();
-		$default_options    = array();
-
-		foreach ( Settings::DEFAULT_OPTIONS as $key => $value ) {
-			$properties_options[ $key ] = array(
-				'type' => $value['type'],
-			);
-			$default_options[ $key ]    = $value['default'];
-		}
+		$default_options = Settings::get_defaults( Settings::DEFAULT_OPTIONS );
 
 		$args_options = array(
 			'type'         => 'object',
 			'description'  => __( 'Editor settings.', 'custom-html-block-extension' ),
 			'show_in_rest' => array(
-				'schema' => array(
-					'type'       => 'object',
-					'properties' => $properties_options,
-				),
+				'schema' => Settings::get_schema( Settings::DEFAULT_OPTIONS ),
 			),
 			'default'      => $default_options,
 		);

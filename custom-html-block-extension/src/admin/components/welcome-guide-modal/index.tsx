@@ -2,8 +2,7 @@
  * WordPress dependencies
  */
 import { __, sprintf } from '@wordpress/i18n';
-import apiFetch from '@wordpress/api-fetch';
-import { Guide, __experimentalHeading as Heading } from '@wordpress/components';
+import { Guide } from '@wordpress/components';
 import { Stack, Text } from '@wordpress/ui';
 
 type WelcomeGuideModalProps = {
@@ -11,20 +10,9 @@ type WelcomeGuideModalProps = {
 };
 
 export default function WelcomeGuideModal( { onClose }: WelcomeGuideModalProps ) {
-	const onFinish = () => {
-		onClose();
-		if ( ! window.chbeObj.dismissWelcomeGuide ) {
-			apiFetch( {
-				path: '/custom-html-block-extension/v1/dismiss_welcome_guide',
-				method: 'POST',
-			} );
-			window.chbeObj.dismissWelcomeGuide = true;
-		}
-	};
-
 	return (
 		<Guide
-			onFinish={ onFinish }
+			onFinish={ onClose }
 			className="chbe-admin-welcome-guide-modal"
 			contentLabel={ __( 'About Custom HTML Block Extension', 'custom-html-block-extension' ) }
 			finishButtonText={ __( 'Get started', 'custom-html-block-extension' ) }
@@ -38,9 +26,9 @@ export default function WelcomeGuideModal( { onClose }: WelcomeGuideModalProps )
 					),
 					content: (
 						<Stack className="chbe-admin-welcome-guide-modal__content" direction="column" gap="lg">
-							<Heading level="2" as="h1">
+							<Text variant="heading-xl" render={ <h1 /> }>
 								{ __( 'About Custom HTML Block Extension', 'custom-html-block-extension' ) }
-							</Heading>
+							</Text>
 							<Text render={ <p /> }>
 								{ sprintf(
 									/* translators: %s is replaced with the number. */
@@ -50,7 +38,7 @@ export default function WelcomeGuideModal( { onClose }: WelcomeGuideModalProps )
 							</Text>
 							<Text render={ <p /> }>
 								{ __(
-									'Custom HTML Block Extension extends Custom HTML block to evolve into the advanced code editor.',
+									'Custom HTML Block Extension turns the Custom HTML block into an advanced code editor powered by Monaco Editor, the code editor behind VS Code.',
 									'custom-html-block-extension'
 								) }
 							</Text>
@@ -61,17 +49,17 @@ export default function WelcomeGuideModal( { onClose }: WelcomeGuideModalProps )
 					image: (
 						<img
 							src={ window.chbeObj.pluginUrl + '/assets/images/admin/welcome-guide/slide_2.gif' }
-							alt={ __( 'Various color themes', 'custom-html-block-extension' ) }
+							alt={ __( 'Syntax highlighting with 50 themes', 'custom-html-block-extension' ) }
 						/>
 					),
 					content: (
 						<Stack className="chbe-admin-welcome-guide-modal__content" direction="column" gap="lg">
-							<Heading level="2" as="h1">
-								{ __( 'Various color themes', 'custom-html-block-extension' ) }
-							</Heading>
+							<Text variant="heading-xl" render={ <h1 /> }>
+								{ __( 'Syntax highlighting with 50 themes', 'custom-html-block-extension' ) }
+							</Text>
 							<Text render={ <p /> }>
 								{ __(
-									'There are 50 different color themes to choose from, and you can select the one that best suits your taste.',
+									'Choose from 50 color themes to suit your taste. Block delimiters and shortcodes are highlighted, too.',
 									'custom-html-block-extension'
 								) }
 							</Text>
@@ -87,12 +75,12 @@ export default function WelcomeGuideModal( { onClose }: WelcomeGuideModalProps )
 					),
 					content: (
 						<Stack className="chbe-admin-welcome-guide-modal__content" direction="column" gap="lg">
-							<Heading level="2" as="h1">
+							<Text variant="heading-xl" render={ <h1 /> }>
 								{ __( 'Faster coding with Emmet', 'custom-html-block-extension' ) }
-							</Heading>
+							</Text>
 							<Text render={ <p /> }>
 								{ __(
-									'Emmet allows you to type shortcuts that are then expanded into full pieces of code. Type less, saving both keystrokes.',
+									'Type short abbreviations and Emmet expands them into full pieces of code. You can also wrap selected code with an abbreviation.',
 									'custom-html-block-extension'
 								) }
 							</Text>
@@ -108,12 +96,12 @@ export default function WelcomeGuideModal( { onClose }: WelcomeGuideModalProps )
 					),
 					content: (
 						<Stack className="chbe-admin-welcome-guide-modal__content" direction="column" gap="lg">
-							<Heading level="2" as="h1">
+							<Text variant="heading-xl" render={ <h1 /> }>
 								{ __( 'High customizability', 'custom-html-block-extension' ) }
-							</Heading>
+							</Text>
 							<Text render={ <p /> }>
 								{ __(
-									'You can change all kinds of settings to create your ideal editor in advanced mode.',
+									'Fine-tune the look and behavior of the editor to make it your own. You can also import your settings from VS Code, and export them back.',
 									'custom-html-block-extension'
 								) }
 							</Text>
@@ -123,18 +111,18 @@ export default function WelcomeGuideModal( { onClose }: WelcomeGuideModalProps )
 				{
 					image: (
 						<img
-							src={ window.chbeObj.pluginUrl + '/assets/images/admin/welcome-guide/slide_5.jpg' }
-							alt={ __( 'More support', 'custom-html-block-extension' ) }
+							src={ window.chbeObj.pluginUrl + '/assets/images/admin/welcome-guide/slide_5.gif' }
+							alt={ __( 'Works everywhere', 'custom-html-block-extension' ) }
 						/>
 					),
 					content: (
 						<Stack className="chbe-admin-welcome-guide-modal__content" direction="column" gap="lg">
-							<Heading level="2" as="h1">
-								{ __( 'More support', 'custom-html-block-extension' ) }
-							</Heading>
+							<Text variant="heading-xl" render={ <h1 /> }>
+								{ __( 'Works everywhere', 'custom-html-block-extension' ) }
+							</Text>
 							<Text render={ <p /> }>
 								{ __(
-									'Supports the classic editor, the theme/plugin editor, and import/export editor settings.',
+									'The same editor is also available in the code editor of the post and site editors, the "Edit as HTML" mode of all blocks, the classic editor, and the theme and plugin file editors.',
 									'custom-html-block-extension'
 								) }
 							</Text>

@@ -1,47 +1,18 @@
 /**
  * WordPress dependencies
  */
-import { __ } from '@wordpress/i18n';
-import { useContext } from '@wordpress/element';
-import {
-	__experimentalToggleGroupControl as ToggleGroupControl,
-	__experimentalToggleGroupControlOption as ToggleGroupControlOption,
-} from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
+import { __, _x } from '@wordpress/i18n';
 import { isAppleOS } from '@wordpress/keycodes';
+import { useContext } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
 import { AdminContext } from '../../index';
-import { useSearchVisibility } from '../index';
-import ItemHelp from '../components/item-help';
+import SettingItem from '../components/setting-item';
 
 export default function MultiCursorModifier() {
 	const { editorOptions, setEditorOptions } = useContext( AdminContext );
-
-	const title = __( 'Multi cursor modifier key', 'custom-html-block-extension' );
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
-
-	const items = [
-		{
-			label: isAppleOS()
-				? __( 'Option', 'custom-html-block-extension' )
-				: __( 'Alt', 'custom-html-block-extension' ),
-			value: 'alt',
-		},
-		{
-			label: isAppleOS()
-				? __( 'Command', 'custom-html-block-extension' )
-				: __( 'Ctrl', 'custom-html-block-extension' ),
-			value: 'ctrlCmd',
-			isDefault: true,
-		},
-	];
 
 	const onChange = ( value: string | number | undefined ) => {
 		setEditorOptions( {
@@ -51,33 +22,35 @@ export default function MultiCursorModifier() {
 	};
 
 	return (
-		<Stack
-			className="chbe-admin-editor-config__setting-item"
-			justify="start"
-			align="start"
-			wrap="wrap"
-			gap="sm"
-		>
-			<ToggleGroupControl
-				size="__unstable-large"
-				label={ title }
-				value={ editorOptions.multiCursorModifier }
-				onChange={ onChange }
-				isBlock
-			>
-				{ items.map( ( item ) => (
-					<ToggleGroupControlOption key={ item.value } value={ item.value } label={ item.label } />
-				) ) }
-			</ToggleGroupControl>
-			<ItemHelp
-				onChange={ onChange }
-				title={ title }
-				description={ __(
-					'You can use multiple cursors for faster editing. Sets the key for applying multiple cursors with modifier key + Click.',
+		<SettingItem
+			control="toggleGroup"
+			name="multiCursorModifier"
+			label={ __( 'Multi Cursor Modifier', 'custom-html-block-extension' ) }
+			value={ editorOptions.multiCursorModifier }
+			onChange={ onChange }
+			defaultValue="alt"
+			options={ [
+				{
+					label: isAppleOS()
+						? _x( 'Option', 'setting option label', 'custom-html-block-extension' )
+						: _x( 'Alt', 'setting option label', 'custom-html-block-extension' ),
+					value: 'alt',
+				},
+				{
+					label: isAppleOS()
+						? _x( 'Command', 'setting option label', 'custom-html-block-extension' )
+						: _x( 'Ctrl', 'setting option label', 'custom-html-block-extension' ),
+					value: 'ctrlCmd',
+				},
+			] }
+			help={ {
+				hideOptions: true,
+				description: __(
+					'The modifier to be used to add multiple cursors with the mouse.',
 					'custom-html-block-extension'
-				) }
-				image="editor-options/multi-cursor-modifier.gif"
-			/>
-		</Stack>
+				),
+				image: 'editor-options/multi-cursor-modifier.gif',
+			} }
+		/>
 	);
 }

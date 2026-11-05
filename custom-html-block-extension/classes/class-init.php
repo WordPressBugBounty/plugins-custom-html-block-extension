@@ -13,9 +13,6 @@ class Init {
 	 * Constructor
 	 */
 	public function __construct() {
-		// Load translated strings
-		load_plugin_textdomain( CHBE_NAMESPACE );
-
 		// Add a link to this plugin settings page in plugin list
 		add_filter( 'plugin_action_links_' . CHBE_BASENAME, array( $this, 'add_action_links' ) );
 
@@ -38,6 +35,7 @@ class Init {
 	public function load_classes() {
 		require_once CHBE_PATH . '/classes/class-option.php';
 		require_once CHBE_PATH . '/classes/class-settings.php';
+		require_once CHBE_PATH . '/classes/class-assets.php';
 		require_once CHBE_PATH . '/classes/class-admin.php';
 		require_once CHBE_PATH . '/classes/class-block-editor.php';
 		require_once CHBE_PATH . '/classes/class-classic-editor.php';

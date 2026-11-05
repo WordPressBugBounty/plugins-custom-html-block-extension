@@ -7,8 +7,7 @@ import clsx from 'clsx';
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Spinner } from '@wordpress/components';
-import { Stack, Tabs } from '@wordpress/ui';
+import { Spinner, Stack, Tabs } from '@wordpress/ui';
 import { createRoot, createContext, useState } from '@wordpress/element';
 import domReady from '@wordpress/dom-ready';
 
@@ -21,38 +20,13 @@ import Header from './components/header';
 import EditorConfig from './editor-config';
 import Tools from './tools';
 import Options from './options';
-import type { AdminContextType } from '../types';
+import { getSampleCode } from './editor-config/components/editor-preview/sample-code';
+import type { AdminContextType, AdminTab, PreviewLanguage } from '../types';
 
 /**
  * Context
  */
 export const AdminContext = createContext< AdminContextType >( {} as AdminContextType );
-
-// Sample code based on indent type and tab size settings.
-const htmlCode = () => {
-	let str = `<div class="container">
-	<h2 class="title">Hello World</h2>
-	<div class="row">
-		<div class="col">
-			<h3 class="subheading">Subtitle</h3>
-			<img src="image.png" alt="WordPress" width="470" height="317">
-			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-		</div>
-		<div class="col">
-			<h3 class="subheading">Subtitle</h3>
-			<img src="image.png" alt="WordPress" width="470" height="317">
-			<a href="https://wordpress.org/" target="_blank">WordPress.org</a>
-		</div>
-	</div>
-</div>
-`;
-
-	const { editorSettings } = window.chbeObj;
-	if ( editorSettings.insertSpaces && editorSettings.tabSize ) {
-		str = str.replace( /\t/gm, ' '.repeat( window.chbeObj.editorSettings.tabSize ) );
-	}
-	return str;
-};
 
 function Admin() {
 	const [ isWaiting, setIsWaiting ] = useState( false );
@@ -60,11 +34,18 @@ function Admin() {
 		theme: window.chbeObj.editorSettings.theme,
 		tabSize: window.chbeObj.editorSettings.tabSize,
 		insertSpaces: window.chbeObj.editorSettings.insertSpaces,
+		detectIndentation: window.chbeObj.editorSettings.detectIndentation,
 		emmet: window.chbeObj.editorSettings.emmet,
 	} );
 	const [ editorOptions, setEditorOptions ] = useState( window.chbeObj.editorOptions );
+	const [ savedEditorConfig, setSavedEditorConfig ] = useState( {
+		editorSettings,
+		editorOptions,
+	} );
 	const [ options, setOptions ] = useState( window.chbeObj.options );
-	const [ code, setCode ] = useState( htmlCode );
+	const [ code, setCode ] = useState( getSampleCode );
+	const [ previewLanguage, setPreviewLanguage ] = useState< PreviewLanguage >( 'html' );
+	const [ selectedTab, setSelectedTab ] = useState< AdminTab >( 'editor-config' );
 
 	return (
 		<div className={ clsx( 'chbe-admin', { 'is-waiting': isWaiting } ) }>
@@ -75,7 +56,11 @@ function Admin() {
 				</div>
 			) }
 			<Header />
-			<Tabs.Root className="chbe-admin__tab-panel" defaultValue="editor-config">
+			<Tabs.Root
+				className="chbe-admin__tab-panel"
+				value={ selectedTab }
+				onValueChange={ ( value: AdminTab ) => setSelectedTab( value ) }
+			>
 				<Stack direction="column" gap="3xl">
 					<Tabs.List className="chbe-admin__tab-list">
 						<Tabs.Tab value="editor-config">
@@ -87,15 +72,21 @@ function Admin() {
 					<AdminContext.Provider
 						value={ {
 							code,
+							previewLanguage,
 							isWaiting,
 							editorSettings,
 							editorOptions,
+							savedEditorConfig,
 							options,
+							selectedTab,
 							setCode,
+							setPreviewLanguage,
 							setIsWaiting,
 							setEditorOptions,
 							setEditorSettings,
+							setSavedEditorConfig,
 							setOptions,
+							setSelectedTab,
 						} }
 					>
 						<div className="chbe-admin-container">

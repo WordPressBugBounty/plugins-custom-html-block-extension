@@ -2,29 +2,16 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { useContext } from '@wordpress/element';
-import { ToggleControl } from '@wordpress/components';
-import { Stack } from '@wordpress/ui';
+import { createInterpolateElement, useContext } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
 import { AdminContext } from '../../index';
-import { useSearchVisibility } from '../index';
-import ItemHelp from '../components/item-help';
+import SettingItem from '../components/setting-item';
 
 export default function UseTabStops() {
 	const { editorOptions, setEditorOptions } = useContext( AdminContext );
-
-	const title = __(
-		'Insert or delete whitespace according to tab position',
-		'custom-html-block-extension'
-	);
-	const isVisible = useSearchVisibility( title );
-
-	if ( ! isVisible ) {
-		return null;
-	}
 
 	const onChange = ( value: boolean ) => {
 		setEditorOptions( {
@@ -34,32 +21,47 @@ export default function UseTabStops() {
 	};
 
 	return (
-		<Stack
-			className="chbe-admin-editor-config__setting-item"
-			justify="start"
-			align="start"
-			wrap="wrap"
-			gap="sm"
-		>
-			<ToggleControl label={ title } checked={ editorOptions.useTabStops } onChange={ onChange } />
-			<ItemHelp
-				onChange={ onChange }
-				title={ title }
-				items={ [
-					{
-						label: __( 'Enable', 'custom-html-block-extension' ),
-						image: 'editor-options/use-tab-stops_1.gif',
-						value: true,
-						isDefault: true,
-					},
-					{
-						label: __( 'Disable', 'custom-html-block-extension' ),
-						image: 'editor-options/use-tab-stops_2.gif',
-						value: false,
-					},
-				] }
-				value={ editorOptions.useTabStops }
-			/>
-		</Stack>
+		<SettingItem
+			control="toggle"
+			name="useTabStops"
+			label={ __( 'Use Tab Stops', 'custom-html-block-extension' ) }
+			value={ editorOptions.useTabStops }
+			onChange={ onChange }
+			defaultValue
+			options={ [
+				{
+					image: 'editor-options/use-tab-stops_1.gif',
+					description: createInterpolateElement(
+						__(
+							'Indenting with <code>Tab</code> aligns to the next tab stop, and <code>Backspace</code> within the indentation deletes back to the previous tab stop.',
+							'custom-html-block-extension'
+						),
+						{
+							code: <code />,
+						}
+					),
+					value: true,
+				},
+				{
+					image: 'editor-options/use-tab-stops_2.gif',
+					description: createInterpolateElement(
+						__(
+							'Indenting with <code>Tab</code> always adds a full Tab Size of indentation, and <code>Backspace</code> deletes one character at a time.',
+							'custom-html-block-extension'
+						),
+						{
+							code: <code />,
+						}
+					),
+					value: false,
+				},
+			] }
+			help={ {
+				description: __(
+					'Spaces and tabs are inserted and deleted in alignment with tab stops.',
+					'custom-html-block-extension'
+				),
+			} }
+		/>
 	);
 }

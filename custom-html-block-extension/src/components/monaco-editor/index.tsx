@@ -1,5 +1,5 @@
 /**
- * Custom monaco editor component which is a customized version of @monaco-editor/react.
+ * Custom monaco editor component which is a customized version of `@monaco-editor/react`.
  *
  * @see https://github.com/suren-atoyan/monaco-react
  */
@@ -7,8 +7,7 @@
 /**
  * External dependencies
  */
-import webfontloader from 'webfontloader';
-import { emmetHTML } from 'emmet-monaco-es';
+import { emmetHTML, emmetCSS } from 'emmet-monaco-es';
 import type * as Monaco from 'monaco-editor';
 import type { CSSProperties } from 'react';
 
@@ -16,8 +15,8 @@ import type { CSSProperties } from 'react';
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { useState, useEffect, useRef } from '@wordpress/element';
-import { useResizeObserver } from '@wordpress/compose';
+import { useState, useEffect, useLayoutEffect, useRef } from '@wordpress/element';
+import { useEvent, useResizeObserver } from '@wordpress/compose';
 import { isAppleOS } from '@wordpress/keycodes';
 import { useDispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
@@ -25,8 +24,10 @@ import { store as noticesStore } from '@wordpress/notices';
 /**
  * Internal dependencies
  */
-import themes from '../../lib/themes';
 import initLoader from '../../lib/loader';
+import { applyTheme, applyBracketPairColorization } from '../../lib/editor';
+import { loadWebFont } from '../../lib/helper';
+import addWrapWithAbbreviationAction, { isApplyingWrapPreview } from '../wrap-with-abbreviation';
 import type { EditorOptions, FontLoadResult } from '../../types';
 
 export type MonacoError = {
@@ -35,7 +36,7 @@ export type MonacoError = {
 };
 
 export type MonacoEditorProps = {
-	className?: string;
+	style?: CSSProperties;
 	language?: string;
 	theme?: string;
 	options?: Partial< EditorOptions >;
@@ -43,14 +44,13 @@ export type MonacoEditorProps = {
 	useEmmet?: boolean;
 	tabSize?: number;
 	insertSpaces?: boolean;
+	detectIndentation?: boolean;
 	onChange?: ( value: string, event?: unknown ) => void;
+	onBlur?: ( value: string ) => void;
+	// Resize the editor to fit its content within these bounds.
+	autoHeight?: { min: number; max: number };
 	onFontLoad?: ( result: FontLoadResult ) => void;
 	onError?: ( error: MonacoError ) => void;
-};
-
-const wrapperStyles: CSSProperties = {
-	position: 'relative',
-	height: '100%',
 };
 
 const loadingStyles: CSSProperties = {
@@ -70,7 +70,7 @@ const loadingStyles: CSSProperties = {
 };
 
 export default function MonacoEditor( {
-	className,
+	style,
 	language = 'html',
 	theme = 'vs-dark',
 	options = {},
@@ -78,24 +78,82 @@ export default function MonacoEditor( {
 	useEmmet = true,
 	tabSize,
 	insertSpaces,
+	detectIndentation = false,
 	onChange = () => null,
+	onBlur = () => null,
+	autoHeight,
 	onFontLoad = () => null,
 	onError = () => null,
 }: MonacoEditorProps ) {
+	const wrapperRef = useRef< HTMLDivElement >( null );
 	const containerRef = useRef< HTMLDivElement >( null );
 	const monacoRef = useRef< typeof Monaco | null >( null );
 	const editorRef = useRef< Monaco.editor.IStandaloneCodeEditor | null >( null );
-	const subscriptionRef = useRef< Monaco.IDisposable | null >( null );
+	const subscriptionsRef = useRef< Monaco.IDisposable[] >( [] );
 
 	const [ isEditorReady, setIsEditorReady ] = useState( false );
 	const [ isMonacoMounting, setIsMonacoMounting ] = useState( true );
 
-	const onChangeRef = useRef( onChange );
-	onChangeRef.current = onChange;
+	const handleChange = useEvent( onChange );
+	const handleBlur = useEvent( onBlur );
+	const autoHeightRef = useRef( autoHeight );
+	useLayoutEffect( () => {
+		autoHeightRef.current = autoHeight;
+	} );
 
 	const { createNotice } = useDispatch( noticesStore );
 
 	const [ resizeListener, size ] = useResizeObserver();
+
+	// Dispose editor.
+	function disposeEditor() {
+		// Unsubscribe first, since disposing the model blurs the editor and
+		// empties its value.
+		subscriptionsRef.current.forEach( ( subscription ) => subscription.dispose() );
+		const editor = editorRef.current;
+		if ( ! editor ) {
+			return;
+		}
+		const model = editor.getModel();
+		if ( model ) {
+			try {
+				model.dispose();
+			} catch {
+				// Firefox throws NS_ERROR_NOT_INITIALIZED when iframe/document
+				// is torn down (e.g. switching to code editor mode).
+			}
+		}
+		editor.dispose();
+		editorRef.current = null;
+	}
+
+	// Resize synchronously so that the editor never renders with the previous height.
+	function updateHeight( contentHeight: number ) {
+		const wrapper = wrapperRef.current;
+		const bounds = autoHeightRef.current;
+		if ( ! wrapper || ! bounds ) {
+			return;
+		}
+		const height = Math.min( Math.max( contentHeight, bounds.min ), bounds.max );
+		wrapper.style.height = `${ height }px`;
+		editorRef.current?.layout();
+	}
+
+	// Load web font.
+	function loadFont( fontFamily?: string ) {
+		const container = containerRef.current;
+		if ( ! container ) {
+			return;
+		}
+		const font = window.chbeObj.fontFamily.find( ( data ) => fontFamily === data.name );
+
+		if ( undefined !== font && 'label' in font ) {
+			loadWebFont( font, container.ownerDocument, options.fontWeight ).then( ( isSuccess ) => {
+				monacoRef.current?.editor.remeasureFonts();
+				onFontLoad( { isSuccess, font } );
+			} );
+		}
+	}
 
 	// Init loader.
 	useEffect( () => {
@@ -103,26 +161,19 @@ export default function MonacoEditor( {
 		if ( ! defaultView ) {
 			return;
 		}
-		const cancelable = initLoader( defaultView );
+		const cancelable = initLoader( defaultView, { onTimeout: onError } );
 
 		cancelable
 			.then( ( monaco ) => {
-				if ( monaco ) {
-					monacoRef.current = monaco;
-					setIsMonacoMounting( false );
-				}
-			} )
-			.catch( ( error ) => onError( error ) );
-
-		// Wait for monaco instance is mounted.
-		const interval = setInterval( () => {
-			const { monaco } = defaultView;
-			if ( monaco?.editor && isMonacoMounting && ! isEditorReady ) {
 				monacoRef.current = monaco;
-				clearInterval( interval );
 				setIsMonacoMounting( false );
-			}
-		}, 500 );
+			} )
+			.catch( ( error: MonacoError ) => {
+				// Ignore the cancelation when the component is unmounted.
+				if ( 'cancelation' !== error?.type ) {
+					onError( error );
+				}
+			} );
 
 		return () => {
 			if ( editorRef.current ) {
@@ -130,7 +181,6 @@ export default function MonacoEditor( {
 			} else {
 				cancelable.cancel();
 			}
-			clearInterval( interval );
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [] );
@@ -143,19 +193,25 @@ export default function MonacoEditor( {
 			if ( ! container || ! monaco ) {
 				return;
 			}
-			const { defaultView } = container.ownerDocument;
-
 			const editor = monaco.editor.create( container, {
 				ariaLabel: isAppleOS()
 					? __(
 							'Editor content. To change the Tab key behavior, press Ctrl+Shift+M.',
 							'custom-html-block-extension'
-					  )
+						)
 					: __(
 							'Editor content. To change the Tab key behavior, press Ctrl+M.',
 							'custom-html-block-extension'
-					  ),
+						),
 				...options,
+				tabSize,
+				insertSpaces,
+				detectIndentation,
+				// Monaco's HTML outline is flat, so the default `outlineModel` pins no lines in sticky scroll.
+				stickyScroll: {
+					...options.stickyScroll,
+					defaultModel: 'foldingProviderModel',
+				},
 			} as Monaco.editor.IStandaloneEditorConstructionOptions );
 			editorRef.current = editor;
 
@@ -168,12 +224,12 @@ export default function MonacoEditor( {
 				if ( value ) {
 					model.setValue( value );
 				}
-			}
 
-			// Apply emmet.
-			if ( useEmmet && defaultView && ! defaultView.enabledEmmet ) {
-				defaultView.enabledEmmet = true;
-				emmetHTML( monaco );
+				// The model is created empty, so detect the indentation from the initial value.
+				if ( detectIndentation ) {
+					const modelOptions = model.getOptions();
+					model.detectIndentation( modelOptions.insertSpaces, modelOptions.tabSize );
+				}
 			}
 
 			// Ctrl+X shortcut without a range selection will cut the block,
@@ -232,19 +288,34 @@ export default function MonacoEditor( {
 				}
 			);
 
-			// Subscribe to content changes once; the callback is read from a ref
-			// so prop changes don't require re-subscribing.
-			subscriptionRef.current = editor.onDidChangeModelContent( ( event ) => {
-				onChangeRef.current?.( editor.getValue(), event );
-			} );
+			// Subscribe to editor events once; the callbacks always call the latest
+			// props so prop changes don't require re-subscribing.
+			subscriptionsRef.current = [
+				editor.onDidChangeModelContent( ( event ) => {
+					// Don't notify the preview of "Wrap with Abbreviation" until it's confirmed.
+					if ( isApplyingWrapPreview( editor ) ) {
+						return;
+					}
+					handleChange( editor.getValue(), event );
+				} ),
+				editor.onDidBlurEditorWidget( () => {
+					handleBlur( editor.getValue() );
+				} ),
+				editor.onDidContentSizeChange( ( { contentHeight, contentHeightChanged } ) => {
+					if ( contentHeightChanged ) {
+						updateHeight( contentHeight );
+					}
+				} ),
+			];
+			updateHeight( editor.getContentHeight() );
 
 			// Toggle tab focus mode with Ctrl+M (Ctrl+Shift+M on Apple OS).
 			editor.addCommand(
 				isAppleOS()
 					? // eslint-disable-next-line no-bitwise
-					  monaco.KeyMod.WinCtrl | monaco.KeyMod.Shift | monaco.KeyCode.KeyM
+						monaco.KeyMod.WinCtrl | monaco.KeyMod.Shift | monaco.KeyCode.KeyM
 					: // eslint-disable-next-line no-bitwise
-					  monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyM,
+						monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyM,
 				() => {
 					const nextTabFocusMode = ! editor.getOption( monaco.editor.EditorOption.tabFocusMode );
 					editor.updateOptions( { tabFocusMode: nextTabFocusMode } );
@@ -254,11 +325,11 @@ export default function MonacoEditor( {
 							? __(
 									'Pressing Tab will now move focus to the next focusable element.',
 									'custom-html-block-extension'
-							  )
+								)
 							: __(
 									'Pressing Tab will now insert the tab character.',
 									'custom-html-block-extension'
-							  ),
+								),
 						{
 							type: 'snackbar',
 							speak: true,
@@ -283,29 +354,15 @@ export default function MonacoEditor( {
 
 	// Change options.
 	useEffect( () => {
-		if ( isEditorReady ) {
-			editorRef.current?.updateOptions( options as Monaco.editor.IEditorOptions );
-			setTimeout( () => {
-				monacoRef.current?.editor.remeasureFonts();
-			}, 300 );
+		if ( ! isEditorReady ) {
+			return;
 		}
+		editorRef.current?.updateOptions( options as Monaco.editor.IEditorOptions );
+		const timeoutId = setTimeout( () => {
+			monacoRef.current?.editor.remeasureFonts();
+		}, 300 );
+		return () => clearTimeout( timeoutId );
 	}, [ options, isEditorReady ] );
-
-	// Change theme.
-	useEffect( () => {
-		const monaco = monacoRef.current;
-		if ( isEditorReady && monaco ) {
-			if ( 'vs-dark' === theme || 'light' === theme ) {
-				monaco.editor.setTheme( theme );
-			} else {
-				const targetTheme = themes.find( ( data ) => theme === data.value );
-				if ( targetTheme ) {
-					monaco.editor.defineTheme( targetTheme.value, targetTheme.data );
-					monaco.editor.setTheme( targetTheme.value );
-				}
-			}
-		}
-	}, [ theme, isEditorReady ] );
 
 	// Change web font.
 	useEffect( () => {
@@ -315,15 +372,75 @@ export default function MonacoEditor( {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ options.fontFamily, isEditorReady ] );
 
-	// Change tab size, insert spaces.
+	// Change tab size, insert spaces, detect indentation.
 	useEffect( () => {
 		if ( isEditorReady ) {
-			editorRef.current?.getModel()?.updateOptions( {
+			editorRef.current?.updateOptions( {
 				tabSize,
 				insertSpaces,
+				detectIndentation,
 			} );
 		}
-	}, [ tabSize, insertSpaces, isEditorReady ] );
+	}, [ tabSize, insertSpaces, detectIndentation, isEditorReady ] );
+
+	// Change theme.
+	useEffect( () => {
+		const monaco = monacoRef.current;
+		if ( isEditorReady && monaco ) {
+			applyTheme( monaco, theme );
+		}
+	}, [ theme, isEditorReady ] );
+
+	// Enable or disable Emmet. The completion is registered to the monaco
+	// instance, so it's shared by all editors in the window.
+	useEffect( () => {
+		const monaco = monacoRef.current;
+		const defaultView = containerRef.current?.ownerDocument.defaultView;
+		if ( ! isEditorReady || ! monaco || ! defaultView ) {
+			return;
+		}
+		/* eslint-disable react-hooks/immutability -- `defaultView` is the window object, not a value managed by React. */
+		if ( useEmmet && ! defaultView.disposeEmmet ) {
+			const disposeEmmetHTML = emmetHTML( monaco, [ 'html', 'php' ] );
+			const disposeEmmetCSS = emmetCSS( monaco );
+			defaultView.disposeEmmet = () => {
+				disposeEmmetHTML();
+				disposeEmmetCSS();
+			};
+		} else if ( ! useEmmet && defaultView.disposeEmmet ) {
+			defaultView.disposeEmmet();
+			defaultView.disposeEmmet = undefined;
+		}
+		/* eslint-enable react-hooks/immutability */
+	}, [ useEmmet, isEditorReady ] );
+
+	// Add or remove the "Emmet: Wrap with Abbreviation" action.
+	useEffect( () => {
+		const monaco = monacoRef.current;
+		const editor = editorRef.current;
+		if (
+			! isEditorReady ||
+			! monaco ||
+			! editor ||
+			! useEmmet ||
+			! [ 'html', 'php' ].includes( language )
+		) {
+			return;
+		}
+		const action = addWrapWithAbbreviationAction( monaco, editor );
+		return () => action.dispose();
+	}, [ useEmmet, language, isEditorReady ] );
+
+	// Change bracket pair colorization. Changing the indentation options resets
+	// the model's colorization options to the defaults, so apply it again after them.
+	useEffect( () => {
+		if ( isEditorReady ) {
+			applyBracketPairColorization(
+				editorRef.current?.getModel(),
+				options.bracketPairColorization
+			);
+		}
+	}, [ options.bracketPairColorization, tabSize, insertSpaces, detectIndentation, isEditorReady ] );
 
 	// Set value.
 	useEffect( () => {
@@ -343,72 +460,29 @@ export default function MonacoEditor( {
 		}
 	}, [ value, isEditorReady ] );
 
-	// Dispose editor.
-	function disposeEditor() {
-		subscriptionRef.current?.dispose();
-		const editor = editorRef.current;
-		if ( ! editor ) {
-			return;
-		}
-		const model = editor.getModel();
-		if ( model ) {
-			try {
-				model.dispose();
-			} catch {
-				// Firefox throws NS_ERROR_NOT_INITIALIZED when iframe/document
-				// is torn down (e.g. switching to code editor mode).
-			}
-		}
-		editor.dispose();
-		editorRef.current = null;
-	}
-
-	// Load web font.
-	function loadFont( fontFamily?: string ) {
-		const container = containerRef.current;
-		if ( ! container ) {
-			return;
-		}
-		const { ownerDocument } = container;
-		const { defaultView } = ownerDocument;
-		const font = window.chbeObj.fontFamily.find( ( data ) => fontFamily === data.name );
-
-		if ( undefined !== font && 'label' in font ) {
-			const webfontConfig: WebFont.Config = {
-				timeout: 5000,
-				custom: {
-					families: [ font.name ],
-				},
-				active: () => {
-					monacoRef.current?.editor.remeasureFonts();
-					onFontLoad( { isSuccess: true, font } );
-				},
-				inactive: () => {
-					monacoRef.current?.editor.remeasureFonts();
-					onFontLoad( { isSuccess: false, font } );
-				},
-				context: defaultView ?? undefined,
-			};
-
-			// Add stylesheet if it is not in current document.
-			if ( 'stylesheet' in font && font.stylesheet ) {
-				const link = ownerDocument.querySelector( `link[href="${ font.stylesheet }"]` );
-				if ( ! link ) {
-					webfontConfig.custom!.urls = [ font.stylesheet ];
+	const wrapperStyles: CSSProperties = {
+		position: 'relative',
+		border: 'var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-strong)',
+		...( autoHeight
+			? {
+					minHeight: autoHeight.min,
+					// Keep the border outside of the height calculated from the content.
+					boxSizing: 'content-box',
 				}
-			}
-
-			webfontloader.load( webfontConfig );
-		}
-	}
+			: {
+					height: '100%',
+					// Keep the border inside of the height of the parent element.
+					boxSizing: 'border-box',
+				} ),
+	};
 
 	return (
-		<div style={ wrapperStyles }>
+		<div ref={ wrapperRef } style={ { ...wrapperStyles, ...style } }>
 			{ resizeListener }
 			{ ! isEditorReady && (
 				<div style={ loadingStyles }>{ __( 'Loading…', 'custom-html-block-extension' ) }</div>
 			) }
-			<div ref={ containerRef } className={ className } id="monaco-editor" />
+			<div ref={ containerRef } className="chbe-monaco-editor" />
 		</div>
 	);
 }
